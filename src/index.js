@@ -1045,12 +1045,19 @@ function adminHtml(adminPath) {
     .surface:hover, .item-card:hover, .metric:hover { border-color: color-mix(in srgb, var(--primary) 28%, var(--line)); box-shadow: var(--shadow); transform: translateY(-1px); }
     .surface-head, .item-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; margin-bottom: 14px; }
     .surface-head h3, .item-head h3 { font-size: 16px; }
-    .metric { padding: 16px; min-height: 118px; display: flex; flex-direction: column; justify-content: space-between; position: relative; overflow: hidden; }
+    .metric { padding: 16px; min-height: 148px; display: flex; flex-direction: column; justify-content: space-between; position: relative; overflow: hidden; text-align: left; color: var(--text); }
+    .metric-link { cursor: pointer; }
+    .metric-link:hover .metric-open { color: var(--primary-strong); }
     .metric:before { content: ""; position: absolute; inset: 0 0 auto; height: 3px; background: linear-gradient(90deg, var(--accent), var(--primary), var(--warning)); }
     .metric-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
     .metric-icon, .card-avatar { width: 34px; height: 34px; display: grid; place-items: center; border-radius: var(--radius-sm); background: linear-gradient(135deg, var(--primary-soft), var(--accent-soft)); color: var(--primary-strong); border: 1px solid var(--line-soft); box-shadow: inset 0 1px 0 rgba(255,255,255,.1); }
     .metric span { color: var(--muted); font-size: 12px; font-weight: 800; }
     .metric strong { font-size: 30px; line-height: 1; letter-spacing: 0; }
+    .metric-main { display: grid; gap: 10px; }
+    .metric-preview { display: grid; gap: 6px; margin-top: 4px; }
+    .metric-preview-item { min-width: 0; padding: 6px 8px; border: 1px solid var(--line-soft); border-radius: var(--radius-sm); background: var(--panel-soft); color: var(--text); font-size: 12px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .metric-preview-item.empty { color: var(--muted); font-weight: 700; }
+    .metric-open { margin-top: 10px; color: var(--muted); font-size: 12px; font-weight: 800; transition: color .16s ease; }
     .form-grid { display: grid; gap: 12px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .field-full { grid-column: 1 / -1; }
     .check-row { display: flex; align-items: center; gap: 9px; min-height: 38px; color: var(--text); font-weight: 700; }
@@ -1209,15 +1216,15 @@ function adminHtml(adminPath) {
 
       <section id="panel-dashboard" class="panel active">
         <div class="grid cols-3">
-          <div class="metric"><div class="metric-head"><span>机场订阅</span><span class="metric-icon">${uiIcon("cloud")}</span></div><strong id="metricAirports">0</strong></div>
-          <div class="metric"><div class="metric-head"><span>手动节点</span><span class="metric-icon">${uiIcon("node")}</span></div><strong id="metricNodes">0</strong></div>
-          <div class="metric"><div class="metric-head"><span>订阅组</span><span class="metric-icon">${uiIcon("layers")}</span></div><strong id="metricProfiles">0</strong></div>
+          <button class="metric metric-link" data-tab="airports" type="button" aria-label="打开机场订阅"><div class="metric-head"><span>机场订阅</span><span class="metric-icon">${uiIcon("cloud")}</span></div><div class="metric-main"><strong id="metricAirports">0</strong><div id="previewAirports" class="metric-preview"></div></div><div class="metric-open">进入机场订阅</div></button>
+          <button class="metric metric-link" data-tab="nodes" type="button" aria-label="打开手动节点"><div class="metric-head"><span>手动节点</span><span class="metric-icon">${uiIcon("node")}</span></div><div class="metric-main"><strong id="metricNodes">0</strong><div id="previewNodes" class="metric-preview"></div></div><div class="metric-open">进入手动节点</div></button>
+          <button class="metric metric-link" data-tab="profiles" type="button" aria-label="打开我的订阅"><div class="metric-head"><span>我的订阅</span><span class="metric-icon">${uiIcon("layers")}</span></div><div class="metric-main"><strong id="metricProfiles">0</strong><div id="previewProfiles" class="metric-preview"></div></div><div class="metric-open">进入我的订阅</div></button>
         </div>
         <section class="surface">
           <div class="surface-head">
             <div>
               <h3>最近更新</h3>
-              <p class="muted">机场订阅和订阅组的最近变更。</p>
+              <p class="muted">机场订阅和我的订阅的最近变更。</p>
             </div>
           </div>
           <div id="recentList" class="list"></div>
@@ -1533,19 +1540,32 @@ function renderDashboard() {
   $("metricAirports").textContent = data.airports.length;
   $("metricNodes").textContent = data.manualNodes.length;
   $("metricProfiles").textContent = data.profiles.length;
+  $("previewAirports").innerHTML = metricPreview(data.airports, "还没有机场订阅");
+  $("previewNodes").innerHTML = metricPreview(data.manualNodes, "还没有手动节点");
+  $("previewProfiles").innerHTML = metricPreview(data.profiles, "还没有我的订阅");
 
   const recent = data.airports.map(function (item) {
     return { type: "机场订阅", name: item.name, date: item.updatedAt, detail: airportUrl(item) };
   }).concat(data.profiles.map(function (item) {
-    return { type: "订阅组", name: item.name, date: item.updatedAt, detail: profileUrl(item) };
+    return { type: "我的订阅", name: item.name, date: item.updatedAt, detail: profileUrl(item) };
   })).sort(function (a, b) {
     return String(b.date || "").localeCompare(String(a.date || ""));
   }).slice(0, 5);
 
   $("recentList").innerHTML = recent.length ? recent.map(function (item) {
-    const icon = item.type === "订阅组" ? "layers" : "cloud";
+    const icon = item.type === "我的订阅" ? "layers" : "cloud";
     return '<article class="recent-row"><div class="item-head"><div class="item-title-row"><span class="card-avatar">' + clientIcon(icon) + '</span><div><h3>' + esc(item.name) + '</h3><div class="item-meta"><span class="badge">' + esc(item.type) + '</span><span class="muted">' + fmtDate(item.date) + '</span></div></div></div></div><div class="mono-line">' + esc(item.detail) + '</div></article>';
   }).join("") : '<div class="empty">还没有订阅数据</div>';
+}
+
+function metricPreview(items, emptyText) {
+  const sorted = items.slice().sort(function (a, b) {
+    return String(b.updatedAt || "").localeCompare(String(a.updatedAt || ""));
+  }).slice(0, 2);
+  if (!sorted.length) return '<div class="metric-preview-item empty">' + esc(emptyText) + '</div>';
+  return sorted.map(function (item) {
+    return '<div class="metric-preview-item">' + esc(item.name || item.slug || "未命名") + '</div>';
+  }).join("");
 }
 
 function renderAirports() {
