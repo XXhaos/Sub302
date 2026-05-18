@@ -8,6 +8,7 @@ const DEFAULT_SETTINGS = {
   publicBaseUrl: "",
   redirectStatusCode: "302",
   profilePrefix: "p",
+  profileListEncoding: "base64",
   adminPath: "admin",
   allowLegacyRootRoutes: true,
 };
@@ -398,10 +399,12 @@ async function serveProfile(request, env, store, rawSlug, url) {
   }
 
   const body = items.join("\n") + (items.length ? "\n" : "");
-  return new Response(request.method === "HEAD" ? null : body, {
+  const encoding = resolveProfileListEncoding(url, store.settings);
+  const responseBody = encoding === "base64" ? base64EncodeUtf8(body) : body;
+  return new Response(request.method === "HEAD" ? null : responseBody, {
     headers: {
       "Content-Type": "text/plain; charset=utf-8",
-      "X-Sub302-Mode": "reference-list",
+      "X-Sub302-Mode": encoding === "base64" ? "reference-list-base64" : "reference-list-raw",
       "X-Robots-Tag": "noindex, nofollow, noarchive",
       ...noStoreHeaders(),
     },
@@ -563,6 +566,7 @@ function sanitizeSettings(settings) {
   const publicBaseUrl = String(source.publicBaseUrl || "").trim().replace(/\/+$/g, "");
   let profilePrefix = normalizeSlug(source.profilePrefix || DEFAULT_SETTINGS.profilePrefix) || DEFAULT_SETTINGS.profilePrefix;
   const adminPath = normalizeAdminPath(source.adminPath || DEFAULT_SETTINGS.adminPath);
+  const profileListEncoding = ["raw", "base64"].includes(source.profileListEncoding) ? source.profileListEncoding : DEFAULT_SETTINGS.profileListEncoding;
   if (profilePrefix === adminPath) profilePrefix = DEFAULT_SETTINGS.profilePrefix;
 
   return {
@@ -570,6 +574,7 @@ function sanitizeSettings(settings) {
     publicBaseUrl: isHttpUrl(publicBaseUrl) ? publicBaseUrl : "",
     redirectStatusCode: String(REDIRECT_STATUS_CODES.has(status) ? status : 302),
     profilePrefix: RESERVED_ROOT_SLUGS.has(profilePrefix) && profilePrefix !== "p" ? "p" : profilePrefix,
+    profileListEncoding,
     adminPath,
     allowLegacyRootRoutes: source.allowLegacyRootRoutes !== false,
   };
@@ -641,6 +646,13 @@ function makeId(prefix) {
 
 function uniqueStrings(items) {
   return Array.from(new Set((Array.isArray(items) ? items : []).map((item) => String(item || "").trim()).filter(Boolean)));
+}
+
+function resolveProfileListEncoding(url, settings) {
+  const explicit = String(url.searchParams.get("format") || url.searchParams.get("target") || "").toLowerCase();
+  if (["raw", "plain", "nodes", "list"].includes(explicit) || url.searchParams.get("raw") === "1") return "raw";
+  if (["base64", "v2ray"].includes(explicit) || url.searchParams.has("base64")) return "base64";
+  return settings.profileListEncoding === "raw" ? "raw" : "base64";
 }
 
 function renameNodeUri(uri, name) {
@@ -1232,6 +1244,13 @@ function adminHtml(adminPath) {
               <label for="profilePrefix">订阅组前缀</label>
               <input id="profilePrefix" placeholder="p" />
             </div>
+            <div>
+              <label for="profileListEncoding">订阅组清单输出</label>
+              <select id="profileListEncoding">
+                <option value="base64">Base64（默认）</option>
+                <option value="raw">明文</option>
+              </select>
+            </div>
             <label class="check-row field-full"><input id="allowLegacyRootRoutes" type="checkbox" checked />允许根路径固定入口</label>
             <div class="actions field-full">
               <button class="btn" type="submit">保存设置</button>
@@ -1414,6 +1433,7 @@ function renderSettings() {
   $("publicBaseUrl").value = settings.publicBaseUrl || "";
   $("redirectStatusCode").value = settings.redirectStatusCode || "302";
   $("profilePrefix").value = settings.profilePrefix || "p";
+  $("profileListEncoding").value = settings.profileListEncoding || "base64";
   $("allowLegacyRootRoutes").checked = settings.allowLegacyRootRoutes !== false;
 }
 
@@ -1474,6 +1494,7 @@ async function saveSettings(event) {
     publicBaseUrl: $("publicBaseUrl").value,
     redirectStatusCode: $("redirectStatusCode").value,
     profilePrefix: $("profilePrefix").value,
+    profileListEncoding: $("profileListEncoding").value,
     allowLegacyRootRoutes: $("allowLegacyRootRoutes").checked
   };
   await saveEntity("/api/settings", payload, "settingsMsg", null);
