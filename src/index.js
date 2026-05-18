@@ -9,6 +9,7 @@ const DEFAULT_SETTINGS = {
   redirectStatusCode: "302",
   profilePrefix: "p",
   profileListEncoding: "base64",
+  accessToken: "",
   adminPath: "admin",
   allowLegacyRootRoutes: true,
 };
@@ -25,6 +26,7 @@ const RESERVED_ROOT_SLUGS = new Set([
   "profile",
   "r",
   "sub",
+  "token",
 ]);
 
 export default {
@@ -355,6 +357,12 @@ async function handlePublicRequest(request, env, url) {
   }
 
   const store = await getStore(env);
+  const access = resolvePublicAccess(url, store.settings);
+  if (!access.ok) {
+    return new Response("Not found", { status: 404, headers: noStoreHeaders() });
+  }
+
+  url = access.url;
   const segments = url.pathname.split("/").filter(Boolean);
   const profilePrefix = normalizeSlug(store.settings.profilePrefix) || DEFAULT_SETTINGS.profilePrefix;
 
@@ -573,6 +581,7 @@ function sanitizeSettings(settings) {
   const publicBaseUrl = String(source.publicBaseUrl || "").trim().replace(/\/+$/g, "");
   let profilePrefix = normalizeSlug(source.profilePrefix || DEFAULT_SETTINGS.profilePrefix) || DEFAULT_SETTINGS.profilePrefix;
   const adminPath = normalizeAdminPath(source.adminPath || DEFAULT_SETTINGS.adminPath);
+  const accessToken = normalizeAccessToken(source.accessToken || source.publicToken || "");
   const profileListEncoding = ["raw", "base64"].includes(source.profileListEncoding) ? source.profileListEncoding : DEFAULT_SETTINGS.profileListEncoding;
   if (profilePrefix === adminPath) profilePrefix = DEFAULT_SETTINGS.profilePrefix;
 
@@ -582,6 +591,7 @@ function sanitizeSettings(settings) {
     redirectStatusCode: String(REDIRECT_STATUS_CODES.has(status) ? status : 302),
     profilePrefix: RESERVED_ROOT_SLUGS.has(profilePrefix) && profilePrefix !== "p" ? "p" : profilePrefix,
     profileListEncoding,
+    accessToken,
     adminPath,
     allowLegacyRootRoutes: source.allowLegacyRootRoutes !== false,
   };
@@ -613,6 +623,13 @@ function normalizeSlug(value) {
 function normalizeAdminPath(value) {
   const path = normalizeSlug(value) || DEFAULT_SETTINGS.adminPath;
   return RESERVED_ROOT_SLUGS.has(path.toLowerCase()) ? DEFAULT_SETTINGS.adminPath : path;
+}
+
+function normalizeAccessToken(value) {
+  return String(value || "")
+    .trim()
+    .replace(/[^A-Za-z0-9._~-]+/g, "")
+    .slice(0, 96);
 }
 
 function isAdminPath(pathname, adminPath) {
@@ -737,17 +754,23 @@ function isHttpUrl(value) {
 }
 
 function buildAirportPublicUrl(request, settings, item) {
-  const path = settings.allowLegacyRootRoutes === false ? `/r/${item.slug}` : `/${item.slug}`;
-  return `${publicBaseUrl(request, settings)}${path}`;
+  const path = settings.allowLegacyRootRoutes === false ? `r/${item.slug}` : item.slug;
+  return `${publicBaseUrl(request, settings)}${buildPublicPath(settings, path)}`;
 }
 
 function buildProfilePublicUrl(request, settings, item) {
   const prefix = normalizeSlug(settings.profilePrefix) || DEFAULT_SETTINGS.profilePrefix;
-  return `${publicBaseUrl(request, settings)}/${prefix}/${item.slug}`;
+  return `${publicBaseUrl(request, settings)}${buildPublicPath(settings, `${prefix}/${item.slug}`)}`;
 }
 
 function publicBaseUrl(request, settings) {
   return settings.publicBaseUrl || new URL(request.url).origin;
+}
+
+function buildPublicPath(settings, routePath) {
+  const cleanPath = String(routePath || "").replace(/^\/+/, "");
+  const token = normalizeAccessToken(settings.accessToken);
+  return token ? `/token=${encodeURIComponent(token)}?${cleanPath}` : `/${cleanPath}`;
 }
 
 async function safeJson(request) {
@@ -815,6 +838,37 @@ async function serveStaticAsset(context) {
     if (response && response.status !== 404) return response;
   }
   return new Response("Not found", { status: 404, headers: noStoreHeaders() });
+}
+
+function resolvePublicAccess(url, settings) {
+  const token = normalizeAccessToken(settings.accessToken);
+  if (!token) return { ok: true, url };
+
+  const parsed = parseTokenizedPublicUrl(url);
+  if (!parsed || parsed.token !== token) return { ok: false };
+  return { ok: true, url: parsed.url };
+}
+
+function parseTokenizedPublicUrl(url) {
+  const segments = url.pathname.split("/").filter(Boolean);
+  if (segments.length !== 1 || !segments[0].startsWith("token=")) return null;
+
+  const token = normalizeAccessToken(segments[0].slice("token=".length));
+  const rawQuery = url.search.startsWith("?") ? url.search.slice(1) : "";
+  if (!token || !rawQuery) return null;
+
+  try {
+    const parts = rawQuery.split("&");
+    const route = decodeURIComponent(parts.shift() || "").replace(/^\/+/, "");
+    if (!route) return null;
+
+    const next = new URL(url.toString());
+    next.pathname = `/${route}`;
+    next.search = parts.length ? `?${parts.join("&")}` : "";
+    return { token, url: next };
+  } catch {
+    return null;
+  }
 }
 
 function uiIcon(name) {
@@ -1063,6 +1117,8 @@ function adminHtml(adminPath) {
     .check-row { display: flex; align-items: center; gap: 9px; min-height: 38px; color: var(--text); font-weight: 700; }
     .check-row input { width: auto; }
     .actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    .input-action { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: stretch; }
+    .field-note { margin-top: 7px; }
 
     .btn {
       min-height: 38px;
@@ -1144,6 +1200,7 @@ function adminHtml(adminPath) {
     @media (max-width: 680px) {
       .topbar, .surface-head, .item-head { display: grid; }
       .form-grid, .grid.cols-2, .grid.cols-3, .grid.cols-4, .choice-list { grid-template-columns: 1fr; }
+      .input-action { grid-template-columns: 1fr; }
       .nav { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .nav button { min-width: 0; }
       .nav button:last-child { grid-column: 1 / -1; }
@@ -1401,6 +1458,14 @@ function adminHtml(adminPath) {
                 <option value="raw">明文</option>
               </select>
             </div>
+            <div class="field-full">
+              <label for="accessToken">订阅 Token</label>
+              <div class="input-action">
+                <input id="accessToken" autocomplete="off" spellcheck="false" placeholder="留空则不启用 token" />
+                <button class="btn secondary small" data-action="generate-token" type="button">${uiIcon("shield")}自动生成</button>
+              </div>
+              <p class="muted field-note">设置后公开链接会变成 <code>/token=xxxx?IPLC</code>，更换 token 后旧链接失效。</p>
+            </div>
             <label class="check-row field-full"><input id="allowLegacyRootRoutes" type="checkbox" checked />允许根路径固定入口</label>
             <div class="actions field-full">
               <button class="btn" type="submit">${uiIcon("save")}保存设置</button>
@@ -1633,6 +1698,7 @@ function renderSettings() {
   $("redirectStatusCode").value = settings.redirectStatusCode || "302";
   $("profilePrefix").value = settings.profilePrefix || "p";
   $("profileListEncoding").value = settings.profileListEncoding || "base64";
+  $("accessToken").value = settings.accessToken || "";
   $("allowLegacyRootRoutes").checked = settings.allowLegacyRootRoutes !== false;
 }
 
@@ -1694,6 +1760,7 @@ async function saveSettings(event) {
     redirectStatusCode: $("redirectStatusCode").value,
     profilePrefix: $("profilePrefix").value,
     profileListEncoding: $("profileListEncoding").value,
+    accessToken: $("accessToken").value,
     allowLegacyRootRoutes: $("allowLegacyRootRoutes").checked
   };
   await saveEntity("/api/settings", payload, "settingsMsg", null);
@@ -1802,17 +1869,23 @@ function setTab(tab) {
 }
 
 function airportUrl(item) {
-  const prefix = state.data.settings.allowLegacyRootRoutes === false ? "/r/" : "/";
-  return baseUrl() + prefix + item.slug;
+  const path = state.data.settings.allowLegacyRootRoutes === false ? "r/" + item.slug : item.slug;
+  return baseUrl() + publicPath(path);
 }
 
 function profileUrl(item) {
   const prefix = state.data.settings.profilePrefix || "p";
-  return baseUrl() + "/" + prefix + "/" + item.slug;
+  return baseUrl() + publicPath(prefix + "/" + item.slug);
 }
 
 function baseUrl() {
   return (state.data && state.data.settings.publicBaseUrl) || location.origin;
+}
+
+function publicPath(routePath) {
+  const cleanPath = String(routePath || "").replace(new RegExp("^/+", "g"), "");
+  const token = String(state.data?.settings?.accessToken || "").trim();
+  return token ? "/token=" + encodeURIComponent(token) + "?" + cleanPath : "/" + cleanPath;
 }
 
 function profileItems(profile) {
@@ -1897,6 +1970,17 @@ function base64EncodeUtf8(value) {
 
 function base64UrlEncodeUtf8(value) {
   return base64EncodeUtf8(value).replace(/\\+/g, "-").replace(/\\//g, "_").replace(/=+$/g, "");
+}
+
+function generateAccessToken() {
+  const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  const bytes = new Uint8Array(24);
+  if (window.crypto && window.crypto.getRandomValues) {
+    window.crypto.getRandomValues(bytes);
+  } else {
+    for (let i = 0; i < bytes.length; i += 1) bytes[i] = Math.floor(Math.random() * 256);
+  }
+  return Array.from(bytes).map(function (value) { return alphabet[value % alphabet.length]; }).join("");
 }
 
 async function copyText(value) {
@@ -2035,6 +2119,11 @@ function bindEvents() {
     if (action === "reset-airport") return resetAirportForm();
     if (action === "reset-node") return resetNodeForm();
     if (action === "reset-profile") return resetProfileForm();
+    if (action === "generate-token") {
+      $("accessToken").value = generateAccessToken();
+      $("settingsMsg").textContent = "已生成，保存后生效";
+      return;
+    }
     if (action === "copy-profile-items") {
       const profile = state.data.profiles.find(function (item) { return item.id === id; });
       return copyText(profile ? profileItems(profile).join("\\n") : "");
