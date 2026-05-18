@@ -802,12 +802,12 @@ function svg(body, options = {}) {
 }
 
 function iconSvg() {
-  return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#0f766e"/><path d="M18 35.5 29.5 18 46 28.5 34.5 46 18 35.5Z" fill="#d9f4ef"/><path d="M25 34.5h12.5l-4.2 6.4" fill="none" stroke="#0f766e" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><defs><linearGradient id="bg" x1="9" y1="7" x2="56" y2="57" gradientUnits="userSpaceOnUse"><stop stop-color="#13223a"/><stop offset=".5" stop-color="#0f172a"/><stop offset="1" stop-color="#03141c"/></linearGradient><linearGradient id="route" x1="14" y1="18" x2="51" y2="46" gradientUnits="userSpaceOnUse"><stop stop-color="#38bdf8"/><stop offset=".48" stop-color="#2dd4bf"/><stop offset="1" stop-color="#f59e0b"/></linearGradient><linearGradient id="card" x1="20" y1="18" x2="45" y2="47" gradientUnits="userSpaceOnUse"><stop stop-color="#f8fafc"/><stop offset="1" stop-color="#bfdbfe"/></linearGradient></defs><rect x="4" y="4" width="56" height="56" rx="13" fill="url(#bg)"/><path d="M18 22h16.5c7.5 0 12.5 4.7 12.5 10.2S42 42.5 34.5 42.5H24" fill="none" stroke="url(#route)" stroke-width="6.4" stroke-linecap="round"/><path d="M31.5 20 18 32l13.5 12" fill="none" stroke="url(#card)" stroke-width="5.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M29 32h20" fill="none" stroke="#f8fafc" stroke-width="4.6" stroke-linecap="round"/><path d="M19.5 50h25" stroke="#38bdf8" stroke-width="2.4" stroke-linecap="round" opacity=".45"/></svg>';
 }
 
 function uiIcon(name) {
   const icons = {
-    logo: '<svg class="brand-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 13.2 10.2 4 20 10.1 13.8 20 4 13.2Z"/><path d="M8.8 12.8h6.3l-2.1 3.1"/></svg>',
+    logo: '<svg class="brand-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5.8 6.2h7.8a4.4 4.4 0 0 1 0 8.8H8.7"/><path d="M11 8.8 5.8 12.6 11 16.4"/><path d="M8.8 12.6h9.5"/><path d="M7 20h10"/></svg>',
     dashboard: '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.5A1.5 1.5 0 0 1 5.5 4h4A1.5 1.5 0 0 1 11 5.5v5A1.5 1.5 0 0 1 9.5 12h-4A1.5 1.5 0 0 1 4 10.5v-5ZM13 5.5A1.5 1.5 0 0 1 14.5 4h4A1.5 1.5 0 0 1 20 5.5v2A1.5 1.5 0 0 1 18.5 9h-4A1.5 1.5 0 0 1 13 7.5v-2ZM13 13.5a1.5 1.5 0 0 1 1.5-1.5h4a1.5 1.5 0 0 1 1.5 1.5v5a1.5 1.5 0 0 1-1.5 1.5h-4a1.5 1.5 0 0 1-1.5-1.5v-5ZM4 16.5A1.5 1.5 0 0 1 5.5 15h4a1.5 1.5 0 0 1 1.5 1.5v2A1.5 1.5 0 0 1 9.5 20h-4A1.5 1.5 0 0 1 4 18.5v-2Z"/></svg>',
     cloud: '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M7.2 18.5h10.1a4.2 4.2 0 0 0 .5-8.4 6.2 6.2 0 0 0-11.7 1.6 3.4 3.4 0 0 0 1.1 6.8Z"/></svg>',
     node: '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 9.5a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM17.5 20.5a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM6.5 20.5a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM9.1 8.3l5.8 7.4M9.5 17.5h5"/></svg>',
@@ -817,6 +817,15 @@ function uiIcon(name) {
     copy: '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 8h10.5A1.5 1.5 0 0 1 20 9.5v9A1.5 1.5 0 0 1 18.5 20h-9A1.5 1.5 0 0 1 8 18.5V8Z"/><path d="M5 16H4.5A1.5 1.5 0 0 1 3 14.5v-9A1.5 1.5 0 0 1 4.5 4h9A1.5 1.5 0 0 1 15 5.5V6"/></svg>',
     plus: '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>',
     logout: '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 7V5.8A2.8 2.8 0 0 0 11.2 3H6.8A2.8 2.8 0 0 0 4 5.8v12.4A2.8 2.8 0 0 0 6.8 21h4.4a2.8 2.8 0 0 0 2.8-2.8V17"/><path d="M10 12h10M16.5 8.5 20 12l-3.5 3.5"/></svg>',
+    save: '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h12l2 2v14H5V4Z"/><path d="M8 4v6h8V4M8 20v-6h8v6"/></svg>',
+    reset: '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10a6 6 0 1 1-5.2 9"/><path d="M4 7l4-4M4 7l4 4"/></svg>',
+    download: '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v11"/><path d="m8 10 4 4 4-4"/><path d="M5 20h14"/></svg>',
+    upload: '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21V10"/><path d="m8 14 4-4 4 4"/><path d="M5 4h14"/></svg>',
+    shield: '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 20 6v5.6c0 4.6-3 7.8-8 9.4-5-1.6-8-4.8-8-9.4V6l8-3Z"/><path d="m9 12 2 2 4-5"/></svg>',
+    route: '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7h8a4 4 0 0 1 0 8H9"/><path d="m9 11-4 4 4 4"/><path d="M16 15h3"/></svg>',
+    sun: '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4V2M12 22v-2M4 12H2M22 12h-2M5.6 5.6 4.2 4.2M19.8 19.8l-1.4-1.4M18.4 5.6l1.4-1.4M4.2 19.8l1.4-1.4"/><path d="M12 16a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z"/></svg>',
+    moon: '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.4A7.8 7.8 0 0 1 9.6 4 8 8 0 1 0 20 14.4Z"/></svg>',
+    monitor: '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v10H4V5Z"/><path d="M8 21h8M12 15v6"/></svg>',
   };
   return icons[name] || "";
 }
@@ -829,50 +838,132 @@ function adminHtml(adminPath) {
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Sub302 控制台</title>
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="alternate icon" href="/favicon.ico" />
+  <link rel="mask-icon" href="/favicon.svg" color="#2563eb" />
+  <meta name="theme-color" content="#030712" />
+  <script>
+    (function () {
+      try {
+        var mode = localStorage.getItem("sub302_theme") || "system";
+        var dark = mode === "dark" || (mode === "system" && window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
+        document.documentElement.dataset.themeMode = mode;
+        document.documentElement.dataset.theme = dark ? "dark" : "light";
+      } catch (error) {
+        document.documentElement.dataset.theme = "dark";
+      }
+    })();
+  </script>
   <style>
     :root {
-      color-scheme: light;
+      color-scheme: light dark;
       font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      --bg: #f4f6f8;
-      --panel: #ffffff;
-      --panel-soft: #f9fafb;
-      --text: #111827;
-      --muted: #667085;
-      --line: #d9dee7;
-      --line-soft: #eaedf2;
-      --primary: #0f766e;
-      --primary-strong: #115e59;
-      --primary-soft: #d9f4ef;
-      --accent: #b7791f;
-      --danger: #c2410c;
-      --danger-soft: #fff1e8;
-      --shadow: 0 18px 50px rgba(15, 23, 42, 0.08);
+      --bg: #eef3f8;
+      --bg-elevated: rgba(255, 255, 255, .82);
+      --panel: rgba(255, 255, 255, .88);
+      --panel-strong: rgba(255, 255, 255, .96);
+      --panel-soft: rgba(248, 250, 252, .78);
+      --text: #0f172a;
+      --muted: #64748b;
+      --line: rgba(148, 163, 184, .38);
+      --line-soft: rgba(148, 163, 184, .22);
+      --primary: #2563eb;
+      --primary-strong: #1d4ed8;
+      --primary-soft: rgba(37, 99, 235, .12);
+      --accent: #0d9488;
+      --accent-soft: rgba(13, 148, 136, .13);
+      --warning: #d97706;
+      --danger: #dc2626;
+      --danger-soft: rgba(220, 38, 38, .1);
+      --shadow: 0 18px 48px rgba(15, 23, 42, 0.1);
+      --shadow-soft: 0 10px 26px rgba(15, 23, 42, 0.07);
+      --radius: 8px;
+      --radius-sm: 6px;
+      --pill: 999px;
+    }
+
+    html[data-theme="dark"] {
+      color-scheme: dark;
+      --bg: #030712;
+      --bg-elevated: rgba(3, 7, 18, .86);
+      --panel: rgba(15, 23, 42, .76);
+      --panel-strong: rgba(17, 24, 39, .92);
+      --panel-soft: rgba(255, 255, 255, .045);
+      --text: #f8fafc;
+      --muted: #9ca3af;
+      --line: rgba(255, 255, 255, .1);
+      --line-soft: rgba(255, 255, 255, .07);
+      --primary: #60a5fa;
+      --primary-strong: #93c5fd;
+      --primary-soft: rgba(96, 165, 250, .13);
+      --accent: #2dd4bf;
+      --accent-soft: rgba(45, 212, 191, .13);
+      --warning: #f59e0b;
+      --danger: #fb7185;
+      --danger-soft: rgba(244, 63, 94, .13);
+      --shadow: 0 24px 70px rgba(0, 0, 0, .36);
+      --shadow-soft: 0 18px 44px rgba(0, 0, 0, .24);
     }
 
     * { box-sizing: border-box; }
-    body { margin: 0; min-height: 100vh; background: var(--bg); color: var(--text); }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        linear-gradient(180deg, rgba(37, 99, 235, .12), transparent 30rem),
+        linear-gradient(135deg, rgba(13, 148, 136, .08), transparent 38rem),
+        var(--bg);
+      color: var(--text);
+      transition: background-color .2s ease, color .2s ease;
+    }
+    html[data-theme="dark"] body {
+      background:
+        linear-gradient(180deg, rgba(37, 99, 235, .24), transparent 34rem),
+        linear-gradient(135deg, rgba(20, 184, 166, .12), transparent 40rem),
+        var(--bg);
+    }
+    body:before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background-image:
+        linear-gradient(rgba(148, 163, 184, .08) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(148, 163, 184, .08) 1px, transparent 1px);
+      background-size: 48px 48px;
+      mask-image: linear-gradient(to bottom, black, transparent 70%);
+    }
     button, input, textarea, select { font: inherit; }
     button { border: 0; cursor: pointer; }
     input, textarea, select {
       width: 100%;
       border: 1px solid var(--line);
-      border-radius: 8px;
-      background: #fff;
+      border-radius: var(--radius-sm);
+      background: var(--panel-soft);
       color: var(--text);
-      padding: 10px 11px;
+      padding: 11px 12px;
       outline: none;
-      transition: border-color .16s ease, box-shadow .16s ease;
+      transition: border-color .16s ease, box-shadow .16s ease, background-color .16s ease;
     }
     textarea { min-height: 90px; resize: vertical; line-height: 1.55; }
-    input:focus, textarea:focus, select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(15, 118, 110, .14); }
+    input:focus, textarea:focus, select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 22%, transparent); }
+    button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible { outline: 2px solid color-mix(in srgb, var(--primary) 70%, transparent); outline-offset: 2px; }
     label { display: block; font-size: 12px; color: var(--muted); font-weight: 700; margin: 0 0 7px; }
-    code { padding: 2px 5px; border-radius: 6px; background: #eef2f6; color: #263241; word-break: break-all; }
+    code { padding: 2px 5px; border-radius: 7px; background: var(--panel-soft); color: var(--text); word-break: break-all; }
+    ::-webkit-scrollbar { width: 10px; height: 10px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: color-mix(in srgb, var(--muted) 32%, transparent); border: 3px solid transparent; border-radius: var(--pill); background-clip: padding-box; }
+    ::-webkit-scrollbar-thumb:hover { background: color-mix(in srgb, var(--muted) 48%, transparent); border: 3px solid transparent; background-clip: padding-box; }
 
     .hidden { display: none !important; }
     .auth-screen { min-height: 100vh; display: grid; place-items: center; padding: 24px; }
-    .auth-card { width: min(420px, 100%); background: var(--panel); border: 1px solid var(--line-soft); border-radius: 8px; box-shadow: var(--shadow); padding: 24px; }
+    .auth-card { width: min(440px, 100%); background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); padding: 24px; backdrop-filter: blur(18px); }
     .brand-row { display: flex; align-items: center; gap: 12px; margin-bottom: 22px; }
-    .brand-mark { width: 42px; height: 42px; display: grid; place-items: center; border-radius: 8px; background: var(--primary); color: #fff; }
+    .auth-card .surface-head { align-items: center; margin-bottom: 22px; }
+    .auth-card .brand-row { margin-bottom: 0; }
+    .brand-mark { width: 44px; height: 44px; display: grid; place-items: center; border-radius: var(--radius); background: linear-gradient(135deg, #38bdf8, #2563eb 50%, #14b8a6 78%, #f59e0b); color: #fff; box-shadow: 0 16px 36px rgba(37, 99, 235, .24); border: 1px solid rgba(255,255,255,.28); position: relative; overflow: hidden; }
+    .brand-mark:after { content: ""; position: absolute; inset: 1px; border-radius: 7px; box-shadow: inset 0 1px 0 rgba(255,255,255,.34); pointer-events: none; }
+    .brand-mark .brand-icon { position: relative; z-index: 1; }
+    html[data-theme="dark"] .brand-mark { box-shadow: 0 18px 42px rgba(37, 99, 235, .28); }
     .icon, .brand-icon { width: 18px; height: 18px; flex: 0 0 auto; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
     .brand-icon { width: 25px; height: 25px; stroke-width: 1.9; }
     h1, h2, h3, p { margin: 0; }
@@ -881,30 +972,49 @@ function adminHtml(adminPath) {
     .muted { font-size: 13px; line-height: 1.55; }
     .auth-actions { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 16px; }
 
-    .app-shell { min-height: 100vh; display: grid; grid-template-columns: 250px minmax(0, 1fr); }
-    .sidebar { position: sticky; top: 0; height: 100vh; display: flex; flex-direction: column; gap: 18px; padding: 18px; border-right: 1px solid var(--line-soft); background: #ffffff; }
-    .nav { display: grid; gap: 6px; }
+    .app-shell { min-height: 100vh; display: flex; flex-direction: column; }
+    .sidebar {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      min-height: 76px;
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 18px;
+      padding: 12px 24px;
+      border-bottom: 1px solid var(--line);
+      background: var(--bg-elevated);
+      backdrop-filter: blur(18px);
+      box-shadow: 0 1px 0 rgba(255,255,255,.08);
+    }
+    .sidebar .brand-row { margin-bottom: 0; }
+    .sidebar .brand-row h1 { font-size: 19px; }
+    .nav { display: flex; align-items: center; justify-content: center; gap: 4px; min-width: 0; overflow-x: auto; border: 1px solid var(--line); background: var(--panel-soft); border-radius: var(--pill); padding: 5px; box-shadow: inset 0 1px 0 rgba(255,255,255,.08); }
     .nav button {
       display: flex;
       align-items: center;
-      justify-content: flex-start;
+      justify-content: center;
       gap: 10px;
       min-height: 38px;
-      border-radius: 8px;
-      padding: 0 11px;
+      border-radius: var(--pill);
+      padding: 0 14px;
       background: transparent;
-      color: #344054;
+      color: var(--muted);
       font-weight: 700;
       text-align: left;
+      white-space: nowrap;
+      transition: color .16s ease, background-color .16s ease, transform .16s ease;
     }
-    .nav button:hover { background: var(--panel-soft); }
-    .nav button.active { background: var(--primary-soft); color: var(--primary-strong); }
-    .sidebar-footer { margin-top: auto; display: grid; gap: 10px; }
-    .main { min-width: 0; padding: 20px 24px 44px; }
-    .topbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 18px; }
-    .topbar h2 { font-size: 24px; }
+    .nav button:hover { background: var(--panel-strong); color: var(--text); }
+    .nav button.active { background: var(--panel-strong); color: var(--primary-strong); box-shadow: var(--shadow-soft); }
+    .sidebar-footer { display: flex; gap: 8px; align-items: center; justify-content: flex-end; min-width: 0; }
+    .main { width: min(1280px, 100%); min-width: 0; margin: 0 auto; padding: 24px 24px 48px; }
+    .topbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 18px; padding: 18px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--panel); box-shadow: var(--shadow-soft); backdrop-filter: blur(18px); position: relative; overflow: hidden; }
+    .topbar:before { content: ""; position: absolute; inset: 0 0 auto; height: 2px; background: linear-gradient(90deg, var(--primary), var(--accent), var(--warning)); }
+    .topbar h2 { font-size: 26px; letter-spacing: 0; }
     .topbar-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
-    .badge { display: inline-flex; align-items: center; min-height: 28px; padding: 0 9px; border-radius: 999px; background: #eef2f6; color: #475467; font-size: 12px; font-weight: 800; }
+    .badge { display: inline-flex; align-items: center; min-height: 28px; padding: 0 10px; border-radius: 999px; background: var(--panel-soft); border: 1px solid var(--line-soft); color: var(--muted); font-size: 12px; font-weight: 800; }
     .panel { display: none; }
     .panel.active { display: grid; gap: 16px; }
 
@@ -914,19 +1024,25 @@ function adminHtml(adminPath) {
     .grid.cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
     .surface, .metric, .item-card {
       background: var(--panel);
-      border: 1px solid var(--line-soft);
-      border-radius: 8px;
-      box-shadow: 0 8px 26px rgba(15, 23, 42, 0.04);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-soft);
+      backdrop-filter: blur(16px);
+      transition: border-color .16s ease, box-shadow .16s ease, transform .16s ease;
     }
-    .surface { padding: 16px; }
+    .surface { padding: 18px; }
+    .surface:hover, .item-card:hover, .metric:hover { border-color: color-mix(in srgb, var(--primary) 28%, var(--line)); box-shadow: var(--shadow); transform: translateY(-1px); }
     .surface-head, .item-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; margin-bottom: 14px; }
     .surface-head h3, .item-head h3 { font-size: 16px; }
-    .metric { padding: 14px; min-height: 92px; display: flex; flex-direction: column; justify-content: space-between; }
+    .metric { padding: 16px; min-height: 118px; display: flex; flex-direction: column; justify-content: space-between; position: relative; overflow: hidden; }
+    .metric:before { content: ""; position: absolute; inset: 0 0 auto; height: 3px; background: linear-gradient(90deg, var(--accent), var(--primary), var(--warning)); }
+    .metric-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .metric-icon, .card-avatar { width: 34px; height: 34px; display: grid; place-items: center; border-radius: var(--radius-sm); background: linear-gradient(135deg, var(--primary-soft), var(--accent-soft)); color: var(--primary-strong); border: 1px solid var(--line-soft); box-shadow: inset 0 1px 0 rgba(255,255,255,.1); }
     .metric span { color: var(--muted); font-size: 12px; font-weight: 800; }
-    .metric strong { font-size: 27px; line-height: 1; }
+    .metric strong { font-size: 30px; line-height: 1; letter-spacing: 0; }
     .form-grid { display: grid; gap: 12px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .field-full { grid-column: 1 / -1; }
-    .check-row { display: flex; align-items: center; gap: 9px; min-height: 38px; color: #344054; font-weight: 700; }
+    .check-row { display: flex; align-items: center; gap: 9px; min-height: 38px; color: var(--text); font-weight: 700; }
     .check-row input { width: auto; }
     .actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 
@@ -936,28 +1052,42 @@ function adminHtml(adminPath) {
       align-items: center;
       justify-content: center;
       gap: 7px;
-      border-radius: 8px;
+      border-radius: var(--radius-sm);
       padding: 0 13px;
       font-weight: 800;
       background: var(--primary);
       color: #fff;
+      box-shadow: 0 10px 24px color-mix(in srgb, var(--primary) 20%, transparent);
+      transition: transform .16s ease, background-color .16s ease, box-shadow .16s ease;
     }
-    .btn:hover { background: var(--primary-strong); }
-    .btn.secondary { background: #eef2f6; color: #334155; }
-    .btn.secondary:hover { background: #e3e8ef; }
+    .btn:hover { background: var(--primary-strong); transform: translateY(-1px); }
+    .btn.secondary { background: var(--panel-soft); color: var(--text); border: 1px solid var(--line-soft); box-shadow: none; }
+    .btn.secondary:hover { background: color-mix(in srgb, var(--panel-soft) 76%, var(--primary-soft)); }
     .btn.danger { background: var(--danger-soft); color: var(--danger); }
-    .btn.danger:hover { background: #ffe1cf; }
-    .btn.ghost { background: transparent; color: #475467; }
-    .btn.ghost:hover { background: #eef2f6; }
+    .btn.danger:hover { background: color-mix(in srgb, var(--danger-soft) 78%, var(--danger)); }
+    .btn.ghost { background: transparent; color: var(--muted); box-shadow: none; }
+    .btn.ghost:hover { background: var(--panel-soft); color: var(--text); }
     .btn.small { min-height: 32px; padding: 0 10px; font-size: 13px; }
+    .theme-switcher { display: inline-flex; align-items: center; gap: 4px; padding: 4px; border: 1px solid var(--line); border-radius: var(--pill); background: var(--panel-soft); }
+    .theme-switcher button { width: 34px; height: 30px; display: grid; place-items: center; border-radius: var(--pill); background: transparent; color: var(--muted); }
+    .theme-switcher button:hover { color: var(--text); }
+    .theme-switcher button.active { background: var(--primary); color: #fff; box-shadow: 0 8px 18px color-mix(in srgb, var(--primary) 26%, transparent); }
     .status { display: inline-flex; align-items: center; border-radius: 999px; min-height: 24px; padding: 0 8px; font-size: 12px; font-weight: 800; }
     .status.on { color: #047857; background: #dcfce7; }
+    html[data-theme="dark"] .status.on { color: #86efac; background: rgba(34, 197, 94, .14); }
     .status.off { color: #9a3412; background: #ffedd5; }
-    .list { display: grid; gap: 10px; }
-    .item-card { padding: 14px; }
+    html[data-theme="dark"] .status.off { color: #fdba74; background: rgba(249, 115, 22, .14); }
+    .list { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 360px), 1fr)); gap: 12px; align-items: start; }
+    #recentList { grid-template-columns: 1fr; }
+    .item-card { padding: 16px; min-height: 176px; }
+    .item-card .actions { justify-content: flex-end; }
+    .recent-row { display: grid; gap: 8px; padding: 12px; border: 1px solid var(--line-soft); border-radius: var(--radius-sm); background: var(--panel-soft); }
+    .recent-row .item-head { margin-bottom: 0; }
+    .item-title-row { display: flex; align-items: center; gap: 10px; min-width: 0; }
+    .item-title-row h3 { min-width: 0; overflow-wrap: anywhere; }
     .item-meta { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 7px; }
     .item-body { display: grid; gap: 9px; }
-    .mono-line { font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace; font-size: 12px; line-height: 1.55; padding: 9px 10px; border: 1px solid var(--line-soft); border-radius: 8px; background: #f8fafc; word-break: break-all; }
+    .mono-line { font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace; font-size: 12px; line-height: 1.55; padding: 10px 11px; border: 1px solid var(--line-soft); border-radius: var(--radius-sm); background: var(--panel-soft); word-break: break-all; max-height: 112px; overflow: auto; }
     .choice-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
     .choice {
       display: flex;
@@ -965,23 +1095,25 @@ function adminHtml(adminPath) {
       align-items: flex-start;
       padding: 10px;
       border: 1px solid var(--line-soft);
-      border-radius: 8px;
-      background: #fff;
+      border-radius: var(--radius-sm);
+      background: var(--panel-soft);
     }
+    .choice:hover { border-color: color-mix(in srgb, var(--primary) 26%, var(--line)); background: var(--panel-strong); }
+    .choice input:checked + span strong { color: var(--primary-strong); }
     .choice input { width: auto; margin-top: 2px; }
     .choice strong { display: block; font-size: 13px; }
     .choice span { display: block; color: var(--muted); font-size: 12px; line-height: 1.45; word-break: break-all; }
-    .empty { padding: 24px; text-align: center; color: var(--muted); border: 1px dashed var(--line); border-radius: 8px; background: #fff; }
-    .toast { position: fixed; right: 20px; bottom: 20px; z-index: 20; min-width: 220px; max-width: 360px; background: #111827; color: #fff; border-radius: 8px; padding: 11px 13px; box-shadow: var(--shadow); }
+    .empty { padding: 24px; text-align: center; color: var(--muted); border: 1px dashed var(--line); border-radius: var(--radius); background: var(--panel-soft); grid-column: 1 / -1; }
+    .toast { position: fixed; right: 20px; bottom: 20px; z-index: 20; min-width: 220px; max-width: 360px; background: #111827; color: #fff; border-radius: var(--radius-sm); padding: 11px 13px; box-shadow: var(--shadow); }
     .toast.error { background: #7f1d1d; }
     .table { width: 100%; border-collapse: collapse; }
     .table th, .table td { text-align: left; border-bottom: 1px solid var(--line-soft); padding: 10px 8px; vertical-align: top; }
     .table th { color: var(--muted); font-size: 12px; }
 
     @media (max-width: 980px) {
-      .app-shell { grid-template-columns: 1fr; }
-      .sidebar { position: static; height: auto; border-right: 0; border-bottom: 1px solid var(--line-soft); }
-      .nav { grid-template-columns: repeat(5, minmax(0, 1fr)); overflow-x: auto; }
+      .sidebar { grid-template-columns: 1fr; align-items: stretch; position: static; }
+      .sidebar-footer { justify-content: flex-start; flex-wrap: wrap; }
+      .nav { justify-content: flex-start; overflow-x: auto; }
       .nav button { justify-content: center; white-space: nowrap; }
       .main { padding: 16px; }
       .grid.cols-4, .grid.cols-3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -990,21 +1122,31 @@ function adminHtml(adminPath) {
     @media (max-width: 680px) {
       .topbar, .surface-head, .item-head { display: grid; }
       .form-grid, .grid.cols-2, .grid.cols-3, .grid.cols-4, .choice-list { grid-template-columns: 1fr; }
-      .nav { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .nav { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .nav button { min-width: 0; }
+      .nav button:last-child { grid-column: 1 / -1; }
       .actions, .topbar-actions { justify-content: stretch; }
       .btn { width: 100%; }
       .btn.small { width: auto; }
+      .item-card .actions .btn.small { flex: 1 1 auto; }
     }
   </style>
 </head>
 <body>
   <section id="loginView" class="auth-screen">
     <div class="auth-card">
-      <div class="brand-row">
-        <div class="brand-mark">${uiIcon("logo")}</div>
-        <div>
-          <h1>Sub302</h1>
-          <p class="muted">订阅重定向控制台</p>
+      <div class="surface-head">
+        <div class="brand-row">
+          <div class="brand-mark">${uiIcon("logo")}</div>
+          <div>
+            <h1>Sub302</h1>
+            <p class="muted">订阅重定向控制台</p>
+          </div>
+        </div>
+        <div class="theme-switcher" data-theme-switcher aria-label="主题模式">
+          <button data-theme-mode="system" type="button" title="跟随系统" aria-label="跟随系统">${uiIcon("monitor")}</button>
+          <button data-theme-mode="light" type="button" title="浅色" aria-label="浅色">${uiIcon("sun")}</button>
+          <button data-theme-mode="dark" type="button" title="深色" aria-label="深色">${uiIcon("moon")}</button>
         </div>
       </div>
       <form id="loginForm">
@@ -1024,7 +1166,7 @@ function adminHtml(adminPath) {
         <div class="brand-mark">${uiIcon("logo")}</div>
         <div>
           <h1 id="brandTitle">Sub302</h1>
-          <p class="muted">Redirect only</p>
+          <p class="muted">Pages Function</p>
         </div>
       </div>
       <nav class="nav" aria-label="主导航">
@@ -1048,16 +1190,21 @@ function adminHtml(adminPath) {
         </div>
         <div class="topbar-actions">
           <span id="statusBadge" class="badge">Ready</span>
+          <div class="theme-switcher" data-theme-switcher aria-label="主题模式">
+            <button data-theme-mode="system" type="button" title="跟随系统" aria-label="跟随系统">${uiIcon("monitor")}</button>
+            <button data-theme-mode="light" type="button" title="浅色" aria-label="浅色">${uiIcon("sun")}</button>
+            <button data-theme-mode="dark" type="button" title="深色" aria-label="深色">${uiIcon("moon")}</button>
+          </div>
           <button class="btn secondary small" data-action="copy-base" type="button">${uiIcon("copy")}复制基址</button>
         </div>
       </header>
 
       <section id="panel-dashboard" class="panel active">
         <div class="grid cols-4">
-          <div class="metric"><span>机场订阅</span><strong id="metricAirports">0</strong></div>
-          <div class="metric"><span>手动节点</span><strong id="metricNodes">0</strong></div>
-          <div class="metric"><span>订阅组</span><strong id="metricProfiles">0</strong></div>
-          <div class="metric"><span>启用入口</span><strong id="metricEnabled">0</strong></div>
+          <div class="metric"><div class="metric-head"><span>机场订阅</span><span class="metric-icon">${uiIcon("cloud")}</span></div><strong id="metricAirports">0</strong></div>
+          <div class="metric"><div class="metric-head"><span>手动节点</span><span class="metric-icon">${uiIcon("node")}</span></div><strong id="metricNodes">0</strong></div>
+          <div class="metric"><div class="metric-head"><span>订阅组</span><span class="metric-icon">${uiIcon("layers")}</span></div><strong id="metricProfiles">0</strong></div>
+          <div class="metric"><div class="metric-head"><span>启用入口</span><span class="metric-icon">${uiIcon("dashboard")}</span></div><strong id="metricEnabled">0</strong></div>
         </div>
         <div class="grid cols-2">
           <section class="surface">
@@ -1073,7 +1220,7 @@ function adminHtml(adminPath) {
             <div class="surface-head">
               <div>
                 <h3>公开入口</h3>
-                <p class="muted">当前 Worker 对外展示的固定链接基址。</p>
+                <p class="muted">当前 Pages Function 对外展示的固定链接基址。</p>
               </div>
             </div>
             <div class="mono-line" id="baseUrlLine"></div>
@@ -1092,7 +1239,7 @@ function adminHtml(adminPath) {
               <h3>机场订阅</h3>
               <p class="muted">每条记录会生成一个固定 Sub302 链接，访问时只 302 到真实订阅 URL。</p>
             </div>
-            <button class="btn secondary small" data-action="reset-airport" type="button">清空表单</button>
+              <button class="btn secondary small" data-action="reset-airport" type="button">${uiIcon("reset")}清空表单</button>
           </div>
           <form id="airportForm" class="form-grid">
             <input id="airportId" type="hidden" />
@@ -1114,7 +1261,7 @@ function adminHtml(adminPath) {
             </div>
             <label class="check-row field-full"><input id="airportEnabled" type="checkbox" checked />启用这条订阅</label>
             <div class="actions field-full">
-              <button class="btn" type="submit">保存机场订阅</button>
+              <button class="btn" type="submit">${uiIcon("save")}保存机场订阅</button>
               <span id="airportMsg" class="muted"></span>
             </div>
           </form>
@@ -1127,9 +1274,9 @@ function adminHtml(adminPath) {
           <div class="surface-head">
             <div>
               <h3>手动节点</h3>
-              <p class="muted">手动节点会进入订阅组清单，Sub302 不解析、不改写节点内容。</p>
+              <p class="muted">手动节点会进入订阅组清单，输出时按名称写回节点名。</p>
             </div>
-            <button class="btn secondary small" data-action="reset-node" type="button">清空表单</button>
+            <button class="btn secondary small" data-action="reset-node" type="button">${uiIcon("reset")}清空表单</button>
           </div>
           <form id="nodeForm" class="form-grid">
             <input id="nodeId" type="hidden" />
@@ -1150,7 +1297,7 @@ function adminHtml(adminPath) {
               <textarea id="nodeRemark" placeholder="可选"></textarea>
             </div>
             <div class="actions field-full">
-              <button class="btn" type="submit">保存手动节点</button>
+              <button class="btn" type="submit">${uiIcon("save")}保存手动节点</button>
               <span id="nodeMsg" class="muted"></span>
             </div>
           </form>
@@ -1165,7 +1312,7 @@ function adminHtml(adminPath) {
               <h3>我的订阅</h3>
               <p class="muted">订阅组可输出引用清单，或 302 到一个你指定的聚合订阅地址。</p>
             </div>
-            <button class="btn secondary small" data-action="reset-profile" type="button">清空表单</button>
+            <button class="btn secondary small" data-action="reset-profile" type="button">${uiIcon("reset")}清空表单</button>
           </div>
           <form id="profileForm" class="form-grid">
             <input id="profileId" type="hidden" />
@@ -1202,7 +1349,7 @@ function adminHtml(adminPath) {
               <textarea id="profileRemark" placeholder="可选"></textarea>
             </div>
             <div class="actions field-full">
-              <button class="btn" type="submit">保存订阅组</button>
+              <button class="btn" type="submit">${uiIcon("save")}保存订阅组</button>
               <span id="profileMsg" class="muted"></span>
             </div>
           </form>
@@ -1253,7 +1400,7 @@ function adminHtml(adminPath) {
             </div>
             <label class="check-row field-full"><input id="allowLegacyRootRoutes" type="checkbox" checked />允许根路径固定入口</label>
             <div class="actions field-full">
-              <button class="btn" type="submit">保存设置</button>
+              <button class="btn" type="submit">${uiIcon("save")}保存设置</button>
               <span id="settingsMsg" class="muted"></span>
             </div>
           </form>
@@ -1265,8 +1412,8 @@ function adminHtml(adminPath) {
               <p class="muted">导出或导入 Sub302 的 KV 数据。</p>
             </div>
             <div class="actions">
-              <button class="btn secondary small" data-action="export-backup" type="button">导出</button>
-              <button class="btn danger small" data-action="import-backup" type="button">导入</button>
+              <button class="btn secondary small" data-action="export-backup" type="button">${uiIcon("download")}导出</button>
+              <button class="btn danger small" data-action="import-backup" type="button">${uiIcon("upload")}导入</button>
             </div>
           </div>
           <textarea id="backupBox" placeholder="导出的 JSON 会显示在这里"></textarea>
@@ -1282,7 +1429,8 @@ window.SUB302_ADMIN_PATH = ${JSON.stringify(`/${adminPath}`)};
 
 const state = {
   activeTab: "dashboard",
-  data: null
+  data: null,
+  themeMode: "system"
 };
 
 const titles = {
@@ -1295,6 +1443,43 @@ const titles = {
 
 function $(id) {
   return document.getElementById(id);
+}
+
+function initTheme() {
+  try {
+    state.themeMode = localStorage.getItem("sub302_theme") || "system";
+  } catch (error) {
+    state.themeMode = "system";
+  }
+  applyTheme();
+  if (window.matchMedia) {
+    const media = window.matchMedia("(prefers-color-scheme: dark)");
+    const handler = function () {
+      if (state.themeMode === "system") applyTheme();
+    };
+    if (media.addEventListener) media.addEventListener("change", handler);
+    else if (media.addListener) media.addListener(handler);
+  }
+}
+
+function setThemeMode(mode) {
+  state.themeMode = ["system", "light", "dark"].includes(mode) ? mode : "system";
+  try {
+    localStorage.setItem("sub302_theme", state.themeMode);
+  } catch (error) {}
+  applyTheme();
+}
+
+function applyTheme() {
+  const prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+  const dark = state.themeMode === "dark" || (state.themeMode === "system" && prefersDark);
+  document.documentElement.dataset.themeMode = state.themeMode;
+  document.documentElement.dataset.theme = dark ? "dark" : "light";
+  const themeColor = document.querySelector('meta[name="theme-color"]');
+  if (themeColor) themeColor.setAttribute("content", dark ? "#030712" : "#eef3f8");
+  document.querySelectorAll("[data-theme-mode]").forEach(function (button) {
+    button.classList.toggle("active", button.getAttribute("data-theme-mode") === state.themeMode);
+  });
 }
 
 function currentAdminPath() {
@@ -1371,7 +1556,8 @@ function renderDashboard() {
   }).slice(0, 5);
 
   $("recentList").innerHTML = recent.length ? recent.map(function (item) {
-    return '<article class="item-card"><div class="item-head"><div><h3>' + esc(item.name) + '</h3><div class="item-meta"><span class="badge">' + esc(item.type) + '</span><span class="muted">' + fmtDate(item.date) + '</span></div></div></div><div class="mono-line">' + esc(item.detail) + '</div></article>';
+    const icon = item.type === "订阅组" ? "layers" : "cloud";
+    return '<article class="recent-row"><div class="item-head"><div class="item-title-row"><span class="card-avatar">' + clientIcon(icon) + '</span><div><h3>' + esc(item.name) + '</h3><div class="item-meta"><span class="badge">' + esc(item.type) + '</span><span class="muted">' + fmtDate(item.date) + '</span></div></div></div></div><div class="mono-line">' + esc(item.detail) + '</div></article>';
   }).join("") : '<div class="empty">还没有订阅数据</div>';
 }
 
@@ -1380,8 +1566,8 @@ function renderAirports() {
   $("airportList").innerHTML = list.length ? list.map(function (item) {
     const fixed = airportUrl(item);
     return '<article class="item-card">' +
-      '<div class="item-head"><div><h3>' + esc(item.name) + '</h3><div class="item-meta"><span class="status ' + (item.enabled ? "on" : "off") + '">' + (item.enabled ? "启用" : "停用") + '</span><span class="muted">' + fmtDate(item.updatedAt) + '</span></div></div>' +
-      '<div class="actions"><button class="btn secondary small" data-action="copy" data-value="' + attr(fixed) + '" type="button">复制入口</button><button class="btn secondary small" data-action="edit-airport" data-id="' + attr(item.id) + '" type="button">编辑</button><button class="btn danger small" data-action="delete-airport" data-id="' + attr(item.id) + '" type="button">删除</button></div></div>' +
+      '<div class="item-head"><div class="item-title-row"><span class="card-avatar">' + clientIcon("cloud") + '</span><div><h3>' + esc(item.name) + '</h3><div class="item-meta"><span class="status ' + (item.enabled ? "on" : "off") + '">' + (item.enabled ? "启用" : "停用") + '</span><span class="muted">' + fmtDate(item.updatedAt) + '</span></div></div></div>' +
+      '<div class="actions"><button class="btn secondary small" data-action="copy" data-value="' + attr(fixed) + '" type="button">' + clientIcon("copy") + '复制入口</button><button class="btn secondary small" data-action="edit-airport" data-id="' + attr(item.id) + '" type="button">' + clientIcon("edit") + '编辑</button><button class="btn danger small" data-action="delete-airport" data-id="' + attr(item.id) + '" type="button">' + clientIcon("trash") + '删除</button></div></div>' +
       '<div class="item-body"><div class="mono-line">' + esc(fixed) + '</div><div class="mono-line">' + esc(item.url) + '</div>' + (item.remark ? '<p class="muted">' + esc(item.remark) + '</p>' : '') + '</div>' +
     '</article>';
   }).join("") : '<div class="empty">还没有机场订阅</div>';
@@ -1391,8 +1577,8 @@ function renderNodes() {
   const list = state.data.manualNodes;
   $("nodeList").innerHTML = list.length ? list.map(function (item) {
     return '<article class="item-card">' +
-      '<div class="item-head"><div><h3>' + esc(item.name) + '</h3><div class="item-meta"><span class="status ' + (item.enabled ? "on" : "off") + '">' + (item.enabled ? "启用" : "停用") + '</span><span class="muted">' + fmtDate(item.updatedAt) + '</span></div></div>' +
-      '<div class="actions"><button class="btn secondary small" data-action="copy" data-value="' + attr(renameNodeUri(item.uri, item.name)) + '" type="button">复制节点</button><button class="btn secondary small" data-action="edit-node" data-id="' + attr(item.id) + '" type="button">编辑</button><button class="btn danger small" data-action="delete-node" data-id="' + attr(item.id) + '" type="button">删除</button></div></div>' +
+      '<div class="item-head"><div class="item-title-row"><span class="card-avatar">' + clientIcon("node") + '</span><div><h3>' + esc(item.name) + '</h3><div class="item-meta"><span class="status ' + (item.enabled ? "on" : "off") + '">' + (item.enabled ? "启用" : "停用") + '</span><span class="muted">' + fmtDate(item.updatedAt) + '</span></div></div></div>' +
+      '<div class="actions"><button class="btn secondary small" data-action="copy" data-value="' + attr(renameNodeUri(item.uri, item.name)) + '" type="button">' + clientIcon("copy") + '复制节点</button><button class="btn secondary small" data-action="edit-node" data-id="' + attr(item.id) + '" type="button">' + clientIcon("edit") + '编辑</button><button class="btn danger small" data-action="delete-node" data-id="' + attr(item.id) + '" type="button">' + clientIcon("trash") + '删除</button></div></div>' +
       '<div class="item-body"><div class="mono-line">' + esc(item.uri) + '</div>' + (item.remark ? '<p class="muted">' + esc(item.remark) + '</p>' : '') + '</div>' +
     '</article>';
   }).join("") : '<div class="empty">还没有手动节点</div>';
@@ -1405,8 +1591,8 @@ function renderProfiles() {
     const link = profileUrl(item);
     const items = profileItems(item);
     return '<article class="item-card">' +
-      '<div class="item-head"><div><h3>' + esc(item.name) + '</h3><div class="item-meta"><span class="status ' + (item.enabled ? "on" : "off") + '">' + (item.enabled ? "启用" : "停用") + '</span><span class="badge">' + (item.output === "redirect" ? "302 聚合地址" : "引用清单") + '</span><span class="muted">' + fmtDate(item.updatedAt) + '</span></div></div>' +
-      '<div class="actions"><button class="btn secondary small" data-action="copy" data-value="' + attr(link) + '" type="button">复制链接</button><button class="btn secondary small" data-action="copy-profile-items" data-id="' + attr(item.id) + '" type="button">复制成员</button><button class="btn secondary small" data-action="edit-profile" data-id="' + attr(item.id) + '" type="button">编辑</button><button class="btn danger small" data-action="delete-profile" data-id="' + attr(item.id) + '" type="button">删除</button></div></div>' +
+      '<div class="item-head"><div class="item-title-row"><span class="card-avatar">' + clientIcon("layers") + '</span><div><h3>' + esc(item.name) + '</h3><div class="item-meta"><span class="status ' + (item.enabled ? "on" : "off") + '">' + (item.enabled ? "启用" : "停用") + '</span><span class="badge">' + (item.output === "redirect" ? "302 聚合地址" : "引用清单") + '</span><span class="muted">' + fmtDate(item.updatedAt) + '</span></div></div></div>' +
+      '<div class="actions"><button class="btn secondary small" data-action="copy" data-value="' + attr(link) + '" type="button">' + clientIcon("copy") + '复制链接</button><button class="btn secondary small" data-action="copy-profile-items" data-id="' + attr(item.id) + '" type="button">' + clientIcon("copy") + '复制成员</button><button class="btn secondary small" data-action="edit-profile" data-id="' + attr(item.id) + '" type="button">' + clientIcon("edit") + '编辑</button><button class="btn danger small" data-action="delete-profile" data-id="' + attr(item.id) + '" type="button">' + clientIcon("trash") + '删除</button></div></div>' +
       '<div class="item-body"><div class="mono-line">' + esc(link) + '</div>' +
       (item.output === "redirect" ? '<div class="mono-line">' + esc(item.redirectTarget) + '</div>' : '<p class="muted">成员数量：' + items.length + '</p>') +
       (item.remark ? '<p class="muted">' + esc(item.remark) + '</p>' : '') + '</div>' +
@@ -1735,6 +1921,18 @@ function attr(value) {
   return esc(value).replace(new RegExp(String.fromCharCode(96), "g"), "&#96;");
 }
 
+function clientIcon(name) {
+  const icons = {
+    cloud: '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M7.2 18.5h10.1a4.2 4.2 0 0 0 .5-8.4 6.2 6.2 0 0 0-11.7 1.6 3.4 3.4 0 0 0 1.1 6.8Z"/></svg>',
+    node: '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 9.5a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM17.5 20.5a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM6.5 20.5a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM9.1 8.3l5.8 7.4M9.5 17.5h5"/></svg>',
+    layers: '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 9 5-9 5-9-5 9-5Z"/><path d="m4 12 8 4.5 8-4.5M4 16l8 4.5 8-4.5"/></svg>',
+    copy: '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 8h10.5A1.5 1.5 0 0 1 20 9.5v9A1.5 1.5 0 0 1 18.5 20h-9A1.5 1.5 0 0 1 8 18.5V8Z"/><path d="M5 16H4.5A1.5 1.5 0 0 1 3 14.5v-9A1.5 1.5 0 0 1 4.5 4h9A1.5 1.5 0 0 1 15 5.5V6"/></svg>',
+    edit: '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5Z"/></svg>',
+    trash: '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16"/><path d="M10 11v6M14 11v6"/><path d="M6 7l1 14h10l1-14"/><path d="M9 7V4h6v3"/></svg>'
+  };
+  return icons[name] || "";
+}
+
 let toastTimer;
 function toast(message, isError) {
   const box = $("toast");
@@ -1777,6 +1975,12 @@ function bindEvents() {
       return;
     }
 
+    const themeButton = event.target.closest("[data-theme-mode]");
+    if (themeButton) {
+      setThemeMode(themeButton.getAttribute("data-theme-mode"));
+      return;
+    }
+
     const actionButton = event.target.closest("[data-action]");
     if (!actionButton) return;
     const action = actionButton.getAttribute("data-action");
@@ -1816,6 +2020,7 @@ function bindEvents() {
   });
 }
 
+initTheme();
 bindEvents();
 loadData().catch(function (error) {
   $("loginView").classList.remove("hidden");
