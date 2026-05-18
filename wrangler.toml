@@ -2,10 +2,6 @@ name = "sub302"
 main = "src/index.js"
 compatibility_date = "2026-05-10"
 
-[[kv_namespaces]]
-binding = "SUB302_KV"
-id = "REPLACE_WITH_YOUR_SUB302_KV_NAMESPACE_ID"
-
 [vars]
 # Change in Cloudflare dashboard or with: wrangler secret put SUB302_ADMIN_PASSWORD
 # SUB302_ADMIN_PASSWORD = "change-me"
