@@ -1096,11 +1096,14 @@ function adminHtml(adminPath) {
     .status.off { color: #9a3412; background: #ffedd5; }
     html[data-theme="dark"] .status.off { color: #fdba74; background: rgba(249, 115, 22, .14); }
     .list { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 360px), 1fr)); gap: 12px; align-items: start; }
-    #recentList { grid-template-columns: 1fr; }
+    #subscriptionOverview { grid-template-columns: 1fr; }
     .item-card { padding: 16px; min-height: 176px; }
     .item-card .actions { justify-content: flex-end; }
-    .recent-row { display: grid; gap: 8px; padding: 12px; border: 1px solid var(--line-soft); border-radius: var(--radius-sm); background: var(--panel-soft); }
-    .recent-row .item-head { margin-bottom: 0; }
+    .overview-row { display: grid; gap: 10px; padding: 12px; border: 1px solid var(--line-soft); border-radius: var(--radius-sm); background: var(--panel-soft); cursor: pointer; transition: border-color .16s ease, background-color .16s ease, transform .16s ease; }
+    .overview-row:hover { border-color: color-mix(in srgb, var(--primary) 26%, var(--line)); background: var(--panel-strong); transform: translateY(-1px); }
+    .overview-row .item-head { margin-bottom: 0; }
+    .overview-link { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: center; }
+    .copy-hint { color: var(--primary-strong); font-size: 12px; font-weight: 800; white-space: nowrap; }
     .item-title-row { display: flex; align-items: center; gap: 10px; min-width: 0; }
     .item-title-row h3 { min-width: 0; overflow-wrap: anywhere; }
     .item-meta { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 7px; }
@@ -1223,11 +1226,11 @@ function adminHtml(adminPath) {
         <section class="surface">
           <div class="surface-head">
             <div>
-              <h3>最近更新</h3>
-              <p class="muted">机场订阅和我的订阅的最近变更。</p>
+              <h3>订阅总览</h3>
+              <p class="muted">机场订阅和我的订阅的固定入口。</p>
             </div>
           </div>
-          <div id="recentList" class="list"></div>
+          <div id="subscriptionOverview" class="list"></div>
         </section>
       </section>
 
@@ -1544,18 +1547,20 @@ function renderDashboard() {
   $("previewNodes").innerHTML = metricPreview(data.manualNodes, "还没有手动节点");
   $("previewProfiles").innerHTML = metricPreview(data.profiles, "还没有我的订阅");
 
-  const recent = data.airports.map(function (item) {
-    return { type: "机场订阅", name: item.name, date: item.updatedAt, detail: airportUrl(item) };
+  const overview = data.airports.map(function (item) {
+    return { type: "机场订阅", name: item.name, date: item.updatedAt, link: airportUrl(item), enabled: item.enabled !== false, icon: "cloud" };
   }).concat(data.profiles.map(function (item) {
-    return { type: "我的订阅", name: item.name, date: item.updatedAt, detail: profileUrl(item) };
+    return { type: "我的订阅", name: item.name, date: item.updatedAt, link: profileUrl(item), enabled: item.enabled !== false, icon: "layers" };
   })).sort(function (a, b) {
     return String(b.date || "").localeCompare(String(a.date || ""));
-  }).slice(0, 5);
+  });
 
-  $("recentList").innerHTML = recent.length ? recent.map(function (item) {
-    const icon = item.type === "我的订阅" ? "layers" : "cloud";
-    return '<article class="recent-row"><div class="item-head"><div class="item-title-row"><span class="card-avatar">' + clientIcon(icon) + '</span><div><h3>' + esc(item.name) + '</h3><div class="item-meta"><span class="badge">' + esc(item.type) + '</span><span class="muted">' + fmtDate(item.date) + '</span></div></div></div></div><div class="mono-line">' + esc(item.detail) + '</div></article>';
-  }).join("") : '<div class="empty">还没有订阅数据</div>';
+  $("subscriptionOverview").innerHTML = overview.length ? overview.map(function (item) {
+    return '<article class="overview-row" data-action="copy" data-value="' + attr(item.link) + '" title="点击复制">' +
+      '<div class="item-head"><div class="item-title-row"><span class="card-avatar">' + clientIcon(item.icon) + '</span><div><h3>' + esc(item.name) + '</h3><div class="item-meta"><span class="badge">' + esc(item.type) + '</span><span class="status ' + (item.enabled ? "on" : "off") + '">' + (item.enabled ? "启用" : "停用") + '</span><span class="muted">' + fmtDate(item.date) + '</span></div></div></div></div>' +
+      '<div class="overview-link"><div class="mono-line">' + esc(item.link) + '</div><span class="copy-hint">点击复制</span></div>' +
+    '</article>';
+  }).join("") : '<div class="empty">还没有订阅链接</div>';
 }
 
 function metricPreview(items, emptyText) {
