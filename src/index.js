@@ -1569,9 +1569,14 @@ function applyTheme() {
   document.documentElement.dataset.theme = dark ? "dark" : "light";
   const themeColor = document.querySelector('meta[name="theme-color"]');
   if (themeColor) themeColor.setAttribute("content", dark ? "#030712" : "#eef3f8");
-  document.querySelectorAll("[data-theme-mode]").forEach(function (button) {
+  document.querySelectorAll("button[data-theme-mode]").forEach(function (button) {
     button.classList.toggle("active", button.getAttribute("data-theme-mode") === state.themeMode);
   });
+}
+
+function closestElement(target, selector) {
+  const element = target && target.nodeType === 1 ? target : target?.parentElement;
+  return element?.closest ? element.closest(selector) : null;
 }
 
 function currentAdminPath() {
@@ -2256,25 +2261,25 @@ function bindEvents() {
   });
 
   document.addEventListener("click", async function (event) {
-    const copyTarget = event.target.closest("[data-copy-value]");
+    const copyTarget = closestElement(event.target, "[data-copy-value]");
     if (copyTarget) {
       event.preventDefault();
       return copyText(copyTarget.getAttribute("data-copy-value"));
     }
 
-    const tabButton = event.target.closest("[data-tab]");
+    const tabButton = closestElement(event.target, "[data-tab]");
     if (tabButton) {
       setTab(tabButton.getAttribute("data-tab"));
       return;
     }
 
-    const themeButton = event.target.closest("[data-theme-mode]");
+    const themeButton = closestElement(event.target, "button[data-theme-mode]");
     if (themeButton) {
       setThemeMode(themeButton.getAttribute("data-theme-mode"));
       return;
     }
 
-    const actionButton = event.target.closest("[data-action]");
+    const actionButton = closestElement(event.target, "[data-action]");
     if (!actionButton) return;
     const action = actionButton.getAttribute("data-action");
     const id = actionButton.getAttribute("data-id");
@@ -2326,7 +2331,7 @@ function bindEvents() {
       return;
     }
     if (event.key !== "Enter" && event.key !== " ") return;
-    const copyTarget = event.target.closest("[data-copy-value]");
+    const copyTarget = closestElement(event.target, "[data-copy-value]");
     if (!copyTarget) return;
     event.preventDefault();
     copyText(copyTarget.getAttribute("data-copy-value"));
