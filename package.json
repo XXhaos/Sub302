@@ -1,0 +1,14 @@
+{
+  "name": "sub302-cf",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A tiny Cloudflare Worker subscription redirect manager: UI + CRUD + 302 only.",
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy"
+  },
+  "devDependencies": {
+    "wrangler": "^4.0.0"
+  }
+}

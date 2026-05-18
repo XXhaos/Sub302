@@ -1,0 +1,15 @@
+name = "sub302-cf"
+main = "src/index.js"
+compatibility_date = "2026-05-10"
+
+# Set this after creating a KV namespace:
+# wrangler kv namespace create SUB_ROUTES
+# [[kv_namespaces]]
+# binding = "SUB_ROUTES"
+# id = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+
+[vars]
+# Change in Cloudflare dashboard or with: wrangler secret put ADMIN_PASSWORD
+# ADMIN_PASSWORD = "change-me"
+# Optional: default is 302. Use 307 if you prefer method-preserving redirects.
+REDIRECT_STATUS_CODE = "302"
