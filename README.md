@@ -5,7 +5,7 @@ Sub302 是一个部署在 Cloudflare Pages Functions 上的订阅入口管理器
 - 单条机场订阅入口只返回 `302/307/308/303 Location`
 - 不在 Cloudflare 端 `fetch()` 真实订阅
 - 不解析、不合并、不转换订阅内容
-- 本地 Sub-Store 负责订阅拉取、转换和聚合处理
+- 本地 Sub-Store 或 代理软件 负责订阅拉取、转换和聚合处理
 
 ## 功能
 
