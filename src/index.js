@@ -1184,6 +1184,10 @@ function adminHtml(adminPath) {
     .empty { padding: 24px; text-align: center; color: var(--muted); border: 1px dashed var(--line); border-radius: var(--radius); background: var(--panel-soft); grid-column: 1 / -1; }
     .toast { position: fixed; right: 20px; bottom: 20px; z-index: 20; min-width: 220px; max-width: 360px; background: #111827; color: #fff; border-radius: var(--radius-sm); padding: 11px 13px; box-shadow: var(--shadow); }
     .toast.error { background: #7f1d1d; }
+    .modal { position: fixed; inset: 0; z-index: 30; display: grid; place-items: center; padding: 18px; background: rgba(2, 6, 23, .68); backdrop-filter: blur(10px); }
+    .modal-panel { width: min(720px, 100%); max-height: min(860px, calc(100vh - 36px)); overflow: auto; background: var(--panel-strong); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); padding: 18px; }
+    .modal-fields { display: contents; }
+    .modal-actions { margin-top: 14px; display: flex; justify-content: flex-end; gap: 8px; flex-wrap: wrap; }
     .table { width: 100%; border-collapse: collapse; }
     .table th, .table td { text-align: left; border-bottom: 1px solid var(--line-soft); padding: 10px 8px; vertical-align: top; }
     .table th { color: var(--muted); font-size: 12px; }
@@ -1490,6 +1494,25 @@ function adminHtml(adminPath) {
     </main>
   </section>
 
+  <div id="editModal" class="modal hidden" aria-hidden="true">
+    <div class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="editModalTitle">
+      <div class="surface-head">
+        <div>
+          <h3 id="editModalTitle">编辑</h3>
+          <p id="editModalSubtitle" class="muted"></p>
+        </div>
+        <button class="btn secondary small" data-action="close-edit-modal" type="button">关闭</button>
+      </div>
+      <form id="editModalForm" class="form-grid">
+        <div id="editModalFields" class="modal-fields"></div>
+        <div class="modal-actions field-full">
+          <button class="btn secondary" data-action="close-edit-modal" type="button">取消</button>
+          <button class="btn" type="submit">${uiIcon("save")}保存修改</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <div id="toast" class="toast hidden"></div>
 
 <script>
@@ -1498,6 +1521,7 @@ window.SUB302_ADMIN_PATH = ${JSON.stringify(`/${adminPath}`)};
 const state = {
   activeTab: "dashboard",
   data: null,
+  edit: { kind: "", id: "" },
   themeMode: "system"
 };
 
@@ -1623,7 +1647,7 @@ function renderDashboard() {
 
   $("subscriptionOverview").innerHTML = overview.length ? overview.map(function (item) {
     return '<article class="overview-row" data-copy-value="' + attr(item.link) + '" role="button" tabindex="0" title="点击复制">' +
-      '<div class="item-head"><div class="item-title-row"><span class="card-avatar">' + clientIcon(item.icon) + '</span><div><h3>' + esc(item.name) + '</h3><div class="item-meta"><span class="badge">' + esc(item.type) + '</span><span class="status ' + (item.enabled ? "on" : "off") + '">' + (item.enabled ? "启用" : "停用") + '</span><span class="muted">' + fmtDate(item.date) + '</span></div></div></div></div>' +
+      '<div class="item-head"><div class="item-title-row"><span class="card-avatar">' + clientIcon(item.icon) + '</span><div><h3>' + esc(item.name) + '</h3><div class="item-meta"><span class="badge">' + esc(item.type) + '</span><span class="status ' + (item.enabled ? "on" : "off") + '">' + (item.enabled ? "启用" : "禁用") + '</span><span class="muted">' + fmtDate(item.date) + '</span></div></div></div></div>' +
       '<div class="overview-link"><div class="mono-line">' + esc(item.link) + '</div><span class="copy-hint">点击复制</span></div>' +
     '</article>';
   }).join("") : '<div class="empty">还没有订阅链接</div>';
@@ -1644,8 +1668,8 @@ function renderAirports() {
   $("airportList").innerHTML = list.length ? list.map(function (item) {
     const fixed = airportUrl(item);
     return '<article class="item-card">' +
-      '<div class="item-head"><div class="item-title-row"><span class="card-avatar">' + clientIcon("cloud") + '</span><div><h3>' + esc(item.name) + '</h3><div class="item-meta"><span class="status ' + (item.enabled ? "on" : "off") + '">' + (item.enabled ? "启用" : "停用") + '</span><span class="muted">' + fmtDate(item.updatedAt) + '</span></div></div></div>' +
-      '<div class="actions"><button class="btn secondary small" data-action="copy" data-value="' + attr(fixed) + '" type="button">' + clientIcon("copy") + '复制入口</button><button class="btn secondary small" data-action="edit-airport" data-id="' + attr(item.id) + '" type="button">' + clientIcon("edit") + '编辑</button><button class="btn danger small" data-action="delete-airport" data-id="' + attr(item.id) + '" type="button">' + clientIcon("trash") + '删除</button></div></div>' +
+      '<div class="item-head"><div class="item-title-row"><span class="card-avatar">' + clientIcon("cloud") + '</span><div><h3>' + esc(item.name) + '</h3><div class="item-meta"><span class="status ' + (item.enabled ? "on" : "off") + '">' + (item.enabled ? "启用" : "禁用") + '</span><span class="muted">' + fmtDate(item.updatedAt) + '</span></div></div></div>' +
+      '<div class="actions"><button class="btn secondary small" data-action="copy" data-value="' + attr(fixed) + '" type="button">' + clientIcon("copy") + '复制链接</button><button class="btn secondary small" data-action="toggle-airport" data-id="' + attr(item.id) + '" type="button">' + (item.enabled ? "禁用" : "启用") + '</button><button class="btn secondary small" data-action="edit-airport" data-id="' + attr(item.id) + '" type="button">' + clientIcon("edit") + '编辑</button><button class="btn danger small" data-action="delete-airport" data-id="' + attr(item.id) + '" type="button">' + clientIcon("trash") + '删除</button></div></div>' +
       '<div class="item-body"><div class="mono-line">' + esc(fixed) + '</div><div class="mono-line">' + esc(item.url) + '</div>' + (item.remark ? '<p class="muted">' + esc(item.remark) + '</p>' : '') + '</div>' +
     '</article>';
   }).join("") : '<div class="empty">还没有机场订阅</div>';
@@ -1655,8 +1679,8 @@ function renderNodes() {
   const list = state.data.manualNodes;
   $("nodeList").innerHTML = list.length ? list.map(function (item) {
     return '<article class="item-card">' +
-      '<div class="item-head"><div class="item-title-row"><span class="card-avatar">' + clientIcon("node") + '</span><div><h3>' + esc(item.name) + '</h3><div class="item-meta"><span class="status ' + (item.enabled ? "on" : "off") + '">' + (item.enabled ? "启用" : "停用") + '</span><span class="muted">' + fmtDate(item.updatedAt) + '</span></div></div></div>' +
-      '<div class="actions"><button class="btn secondary small" data-action="copy" data-value="' + attr(renameNodeUri(item.uri, item.name)) + '" type="button">' + clientIcon("copy") + '复制节点</button><button class="btn secondary small" data-action="edit-node" data-id="' + attr(item.id) + '" type="button">' + clientIcon("edit") + '编辑</button><button class="btn danger small" data-action="delete-node" data-id="' + attr(item.id) + '" type="button">' + clientIcon("trash") + '删除</button></div></div>' +
+      '<div class="item-head"><div class="item-title-row"><span class="card-avatar">' + clientIcon("node") + '</span><div><h3>' + esc(item.name) + '</h3><div class="item-meta"><span class="status ' + (item.enabled ? "on" : "off") + '">' + (item.enabled ? "启用" : "禁用") + '</span><span class="muted">' + fmtDate(item.updatedAt) + '</span></div></div></div>' +
+      '<div class="actions"><button class="btn secondary small" data-action="copy" data-value="' + attr(renameNodeUri(item.uri, item.name)) + '" type="button">' + clientIcon("copy") + '复制节点</button><button class="btn secondary small" data-action="toggle-node" data-id="' + attr(item.id) + '" type="button">' + (item.enabled ? "禁用" : "启用") + '</button><button class="btn secondary small" data-action="edit-node" data-id="' + attr(item.id) + '" type="button">' + clientIcon("edit") + '编辑</button><button class="btn danger small" data-action="delete-node" data-id="' + attr(item.id) + '" type="button">' + clientIcon("trash") + '删除</button></div></div>' +
       '<div class="item-body"><div class="mono-line">' + esc(item.uri) + '</div>' + (item.remark ? '<p class="muted">' + esc(item.remark) + '</p>' : '') + '</div>' +
     '</article>';
   }).join("") : '<div class="empty">还没有手动节点</div>';
@@ -1669,13 +1693,13 @@ function renderProfiles() {
     const link = profileUrl(item);
     const items = profileItems(item);
     return '<article class="item-card">' +
-      '<div class="item-head"><div class="item-title-row"><span class="card-avatar">' + clientIcon("layers") + '</span><div><h3>' + esc(item.name) + '</h3><div class="item-meta"><span class="status ' + (item.enabled ? "on" : "off") + '">' + (item.enabled ? "启用" : "停用") + '</span><span class="badge">' + (item.output === "redirect" ? "302 聚合地址" : "引用清单") + '</span><span class="muted">' + fmtDate(item.updatedAt) + '</span></div></div></div>' +
-      '<div class="actions"><button class="btn secondary small" data-action="copy" data-value="' + attr(link) + '" type="button">' + clientIcon("copy") + '复制链接</button><button class="btn secondary small" data-action="copy-profile-items" data-id="' + attr(item.id) + '" type="button">' + clientIcon("copy") + '复制成员</button><button class="btn secondary small" data-action="edit-profile" data-id="' + attr(item.id) + '" type="button">' + clientIcon("edit") + '编辑</button><button class="btn danger small" data-action="delete-profile" data-id="' + attr(item.id) + '" type="button">' + clientIcon("trash") + '删除</button></div></div>' +
+      '<div class="item-head"><div class="item-title-row"><span class="card-avatar">' + clientIcon("layers") + '</span><div><h3>' + esc(item.name) + '</h3><div class="item-meta"><span class="status ' + (item.enabled ? "on" : "off") + '">' + (item.enabled ? "启用" : "禁用") + '</span><span class="badge">' + (item.output === "redirect" ? "302 聚合地址" : "引用清单") + '</span><span class="muted">' + fmtDate(item.updatedAt) + '</span></div></div></div>' +
+      '<div class="actions"><button class="btn secondary small" data-action="copy" data-value="' + attr(link) + '" type="button">' + clientIcon("copy") + '复制链接</button><button class="btn secondary small" data-action="copy-profile-items" data-id="' + attr(item.id) + '" type="button">' + clientIcon("copy") + '复制成员</button><button class="btn secondary small" data-action="toggle-profile" data-id="' + attr(item.id) + '" type="button">' + (item.enabled ? "禁用" : "启用") + '</button><button class="btn secondary small" data-action="edit-profile" data-id="' + attr(item.id) + '" type="button">' + clientIcon("edit") + '编辑</button><button class="btn danger small" data-action="delete-profile" data-id="' + attr(item.id) + '" type="button">' + clientIcon("trash") + '删除</button></div></div>' +
       '<div class="item-body"><div class="mono-line">' + esc(link) + '</div>' +
       (item.output === "redirect" ? '<div class="mono-line">' + esc(item.redirectTarget) + '</div>' : '<p class="muted">成员数量：' + items.length + '</p>') +
       (item.remark ? '<p class="muted">' + esc(item.remark) + '</p>' : '') + '</div>' +
     '</article>';
-  }).join("") : '<div class="empty">还没有订阅组</div>';
+  }).join("") : '<div class="empty">还没有我的订阅</div>';
 }
 
 function renderProfileChoices(selectedProfile) {
@@ -1785,46 +1809,146 @@ async function saveEntity(path, payload, msgId, afterSave) {
 function editAirport(id) {
   const item = state.data.airports.find(function (entry) { return entry.id === id; });
   if (!item) return;
-  $("airportId").value = item.id;
-  $("airportName").value = item.name;
-  $("airportSlug").value = item.slug;
-  $("airportUrl").value = item.url;
-  $("airportRemark").value = item.remark || "";
-  $("airportEnabled").checked = item.enabled !== false;
-  setTab("airports");
-  window.scrollTo({ top: 0, behavior: "smooth" });
+  openEditModal("airport", item);
 }
 
 function editNode(id) {
   const item = state.data.manualNodes.find(function (entry) { return entry.id === id; });
   if (!item) return;
-  $("nodeId").value = item.id;
-  $("nodeName").value = item.name;
-  $("nodeUri").value = item.uri;
-  $("nodeRemark").value = item.remark || "";
-  $("nodeEnabled").checked = item.enabled !== false;
-  setTab("nodes");
-  window.scrollTo({ top: 0, behavior: "smooth" });
+  openEditModal("node", item);
 }
 
 function editProfile(id) {
   const item = state.data.profiles.find(function (entry) { return entry.id === id; });
   if (!item) return;
-  $("profileId").value = item.id;
-  $("profileName").value = item.name;
-  $("profileSlug").value = item.slug;
-  $("profileOutput").value = item.output || "list";
-  $("profileRedirectTarget").value = item.redirectTarget || "";
-  $("profileRemark").value = item.remark || "";
-  $("profileEnabled").checked = item.enabled !== false;
-  renderProfileChoices(item);
-  updateProfileOutput();
-  setTab("profiles");
-  window.scrollTo({ top: 0, behavior: "smooth" });
+  openEditModal("profile", item);
+}
+
+function openEditModal(kind, item) {
+  state.edit = { kind, id: item.id };
+  const titles = {
+    airport: ["编辑机场订阅", "保存后当前公开链接会立即使用新配置。"],
+    node: ["编辑手动节点", "保存后引用它的我的订阅会使用新节点内容。"],
+    profile: ["编辑我的订阅", "保存后当前订阅链接会立即使用新成员和输出方式。"]
+  };
+  $("editModalTitle").textContent = titles[kind][0];
+  $("editModalSubtitle").textContent = titles[kind][1];
+  $("editModalFields").innerHTML = renderEditFields(kind, item);
+  $("editModal").classList.remove("hidden");
+  $("editModal").setAttribute("aria-hidden", "false");
+  if (kind === "profile") updateModalProfileOutput();
+  setTimeout(function () {
+    const first = $("editModal").querySelector("input, textarea, select, button");
+    if (first) first.focus();
+  }, 0);
+}
+
+function closeEditModal() {
+  state.edit = { kind: "", id: "" };
+  $("editModal").classList.add("hidden");
+  $("editModal").setAttribute("aria-hidden", "true");
+  $("editModalFields").innerHTML = "";
+}
+
+function renderEditFields(kind, item) {
+  if (kind === "airport") {
+    return '<div><label for="modalAirportName">名称</label><input id="modalAirportName" value="' + attr(item.name) + '" /></div>' +
+      '<div><label for="modalAirportSlug">固定路径 slug</label><input id="modalAirportSlug" value="' + attr(item.slug) + '" /></div>' +
+      '<div class="field-full"><label for="modalAirportUrl">真实订阅 URL</label><input id="modalAirportUrl" value="' + attr(item.url) + '" /></div>' +
+      '<div class="field-full"><label for="modalAirportRemark">备注</label><textarea id="modalAirportRemark">' + esc(item.remark || "") + '</textarea></div>' +
+      '<label class="check-row field-full"><input id="modalAirportEnabled" type="checkbox"' + (item.enabled !== false ? " checked" : "") + ' />启用这条订阅</label>';
+  }
+
+  if (kind === "node") {
+    return '<div><label for="modalNodeName">名称</label><input id="modalNodeName" value="' + attr(item.name) + '" /></div>' +
+      '<div><label>状态</label><label class="check-row"><input id="modalNodeEnabled" type="checkbox"' + (item.enabled !== false ? " checked" : "") + ' />启用</label></div>' +
+      '<div class="field-full"><label for="modalNodeUri">节点 URI</label><textarea id="modalNodeUri">' + esc(item.uri) + '</textarea></div>' +
+      '<div class="field-full"><label for="modalNodeRemark">备注</label><textarea id="modalNodeRemark">' + esc(item.remark || "") + '</textarea></div>';
+  }
+
+  return '<div><label for="modalProfileName">名称</label><input id="modalProfileName" value="' + attr(item.name) + '" /></div>' +
+    '<div><label for="modalProfileSlug">我的订阅 slug</label><input id="modalProfileSlug" value="' + attr(item.slug) + '" /></div>' +
+    '<div><label for="modalProfileOutput">输出方式</label><select id="modalProfileOutput"><option value="list"' + ((item.output || "list") !== "redirect" ? " selected" : "") + '>引用清单</option><option value="redirect"' + (item.output === "redirect" ? " selected" : "") + '>302 到聚合地址</option></select></div>' +
+    '<label class="check-row"><input id="modalProfileEnabled" type="checkbox"' + (item.enabled !== false ? " checked" : "") + ' />启用我的订阅</label>' +
+    '<div id="modalProfileRedirectField" class="field-full hidden"><label for="modalProfileRedirectTarget">聚合订阅地址</label><input id="modalProfileRedirectTarget" value="' + attr(item.redirectTarget || "") + '" /></div>' +
+    '<div class="field-full"><label>选择机场订阅</label><div class="choice-list">' + modalChoiceHtml("airport", state.data.airports, item.subscriptionIds || []) + '</div></div>' +
+    '<div class="field-full"><label>选择手动节点</label><div class="choice-list">' + modalChoiceHtml("node", state.data.manualNodes, item.nodeIds || []) + '</div></div>' +
+    '<div class="field-full"><label for="modalProfileRemark">备注</label><textarea id="modalProfileRemark">' + esc(item.remark || "") + '</textarea></div>';
+}
+
+function modalChoiceHtml(kind, items, selectedIds) {
+  const selected = new Set(selectedIds || []);
+  if (!items.length) return '<div class="empty">' + (kind === "airport" ? "先添加机场订阅" : "没有手动节点也可以保存") + '</div>';
+  const inputName = kind === "airport" ? "modalProfileAirport" : "modalProfileNode";
+  return items.map(function (item) {
+    const detail = kind === "airport" ? airportUrl(item) : item.uri;
+    return '<label class="choice"><input type="checkbox" name="' + inputName + '" value="' + attr(item.id) + '"' + (selected.has(item.id) ? " checked" : "") + ' /><span><strong>' + esc(item.name) + '</strong><span>' + esc(detail) + '</span></span></label>';
+  }).join("");
+}
+
+function updateModalProfileOutput() {
+  const field = $("modalProfileRedirectField");
+  const output = $("modalProfileOutput");
+  if (field && output) field.classList.toggle("hidden", output.value !== "redirect");
+}
+
+async function saveEditModal(event) {
+  event.preventDefault();
+  const payload = currentModalPayload();
+  if (!payload) return;
+  const paths = { airport: "/api/airports", node: "/api/manual-nodes", profile: "/api/profiles" };
+  try {
+    const result = await api(paths[state.edit.kind], { method: "POST", body: JSON.stringify(payload) });
+    state.data = result.data || state.data;
+    closeEditModal();
+    renderAll();
+    toast("已保存");
+  } catch (error) {
+    toast(error.message, true);
+  }
+}
+
+function currentModalPayload() {
+  if (state.edit.kind === "airport") {
+    return {
+      id: state.edit.id,
+      name: $("modalAirportName").value,
+      slug: $("modalAirportSlug").value,
+      url: $("modalAirportUrl").value,
+      remark: $("modalAirportRemark").value,
+      enabled: $("modalAirportEnabled").checked
+    };
+  }
+
+  if (state.edit.kind === "node") {
+    return {
+      id: state.edit.id,
+      name: $("modalNodeName").value,
+      uri: $("modalNodeUri").value,
+      remark: $("modalNodeRemark").value,
+      enabled: $("modalNodeEnabled").checked
+    };
+  }
+
+  if (state.edit.kind === "profile") {
+    return {
+      id: state.edit.id,
+      name: $("modalProfileName").value,
+      slug: $("modalProfileSlug").value,
+      output: $("modalProfileOutput").value,
+      redirectTarget: $("modalProfileRedirectTarget").value,
+      subscriptionIds: Array.from(document.querySelectorAll('input[name="modalProfileAirport"]:checked')).map(function (input) { return input.value; }),
+      nodeIds: Array.from(document.querySelectorAll('input[name="modalProfileNode"]:checked')).map(function (input) { return input.value; }),
+      remark: $("modalProfileRemark").value,
+      enabled: $("modalProfileEnabled").checked
+    };
+  }
+
+  return null;
 }
 
 async function deleteEntity(kind, id) {
-  const labels = { airport: "机场订阅", node: "手动节点", profile: "订阅组" };
+  const labels = { airport: "机场订阅", node: "手动节点", profile: "我的订阅" };
   if (!confirm("确定删除这个" + labels[kind] + "？")) return;
   const paths = { airport: "/api/airports/", node: "/api/manual-nodes/", profile: "/api/profiles/" };
   try {
@@ -1835,6 +1959,47 @@ async function deleteEntity(kind, id) {
   } catch (error) {
     toast(error.message, true);
   }
+}
+
+async function toggleEntity(kind, id) {
+  const item = findEntity(kind, id);
+  if (!item) return;
+  const enabled = item.enabled === false;
+  const payload = entityPayload(kind, item, enabled);
+  const paths = { airport: "/api/airports", node: "/api/manual-nodes", profile: "/api/profiles" };
+  try {
+    const result = await api(paths[kind], { method: "POST", body: JSON.stringify(payload) });
+    state.data = result.data || state.data;
+    renderAll();
+    toast(enabled ? "已启用" : "已禁用");
+  } catch (error) {
+    toast(error.message, true);
+  }
+}
+
+function findEntity(kind, id) {
+  const collections = { airport: "airports", node: "manualNodes", profile: "profiles" };
+  return state.data[collections[kind]].find(function (item) { return item.id === id; });
+}
+
+function entityPayload(kind, item, enabled) {
+  if (kind === "airport") {
+    return { id: item.id, name: item.name, slug: item.slug, url: item.url, remark: item.remark || "", enabled };
+  }
+  if (kind === "node") {
+    return { id: item.id, name: item.name, uri: item.uri, remark: item.remark || "", enabled };
+  }
+  return {
+    id: item.id,
+    name: item.name,
+    slug: item.slug,
+    output: item.output || "list",
+    redirectTarget: item.redirectTarget || "",
+    subscriptionIds: item.subscriptionIds || [],
+    nodeIds: item.nodeIds || [],
+    remark: item.remark || "",
+    enabled
+  };
 }
 
 function resetAirportForm() {
@@ -2083,7 +2248,12 @@ function bindEvents() {
   $("nodeForm").addEventListener("submit", saveNode);
   $("profileForm").addEventListener("submit", saveProfile);
   $("settingsForm").addEventListener("submit", saveSettings);
+  $("editModalForm").addEventListener("submit", saveEditModal);
   $("profileOutput").addEventListener("change", updateProfileOutput);
+
+  document.addEventListener("change", function (event) {
+    if (event.target && event.target.id === "modalProfileOutput") updateModalProfileOutput();
+  });
 
   document.addEventListener("click", async function (event) {
     const copyTarget = event.target.closest("[data-copy-value]");
@@ -2113,9 +2283,13 @@ function bindEvents() {
     if (action === "edit-airport") return editAirport(id);
     if (action === "edit-node") return editNode(id);
     if (action === "edit-profile") return editProfile(id);
+    if (action === "toggle-airport") return toggleEntity("airport", id);
+    if (action === "toggle-node") return toggleEntity("node", id);
+    if (action === "toggle-profile") return toggleEntity("profile", id);
     if (action === "delete-airport") return deleteEntity("airport", id);
     if (action === "delete-node") return deleteEntity("node", id);
     if (action === "delete-profile") return deleteEntity("profile", id);
+    if (action === "close-edit-modal") return closeEditModal();
     if (action === "reset-airport") return resetAirportForm();
     if (action === "reset-node") return resetNodeForm();
     if (action === "reset-profile") return resetProfileForm();
@@ -2147,6 +2321,10 @@ function bindEvents() {
   });
 
   document.addEventListener("keydown", function (event) {
+    if (event.key === "Escape" && !$("editModal").classList.contains("hidden")) {
+      closeEditModal();
+      return;
+    }
     if (event.key !== "Enter" && event.key !== " ") return;
     const copyTarget = event.target.closest("[data-copy-value]");
     if (!copyTarget) return;
