@@ -33,7 +33,7 @@ export default {
       }
 
       if (url.pathname.startsWith("/api/")) {
-        return handleApi(request, env, url);
+        return await handleApi(request, env, url);
       }
 
       if (url.pathname === "/") {
@@ -44,7 +44,7 @@ export default {
         return new Response("Not found", { status: 404, headers: noStoreHeaders() });
       }
 
-      return handlePublicRequest(request, env, url);
+      return await handlePublicRequest(request, env, url);
     } catch (err) {
       return json({ ok: false, error: err?.message || "Internal error" }, 500);
     }
