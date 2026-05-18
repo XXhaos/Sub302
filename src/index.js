@@ -18,6 +18,9 @@ const RESERVED_ROOT_SLUGS = new Set([
   "api",
   "assets",
   "favicon.ico",
+  "favicon.png",
+  "favicon.svg",
+  "logo.png",
   "p",
   "profile",
   "r",
@@ -25,10 +28,18 @@ const RESERVED_ROOT_SLUGS = new Set([
 ]);
 
 export default {
-  async fetch(request, env) {
+  async fetch(request, env, context) {
     const url = new URL(request.url);
 
     try {
+      if (url.pathname === "/favicon.ico" || url.pathname === "/favicon.png" || url.pathname === "/favicon.svg") {
+        return redirectToLogo();
+      }
+
+      if (url.pathname === "/logo.png") {
+        return await serveStaticAsset(context);
+      }
+
       const adminPath = await getAdminPath(env);
 
       if (isAdminPath(url.pathname, adminPath)) {
@@ -41,10 +52,6 @@ export default {
 
       if (url.pathname === "/") {
         return new Response("Not found", { status: 404, headers: noStoreHeaders() });
-      }
-
-      if (url.pathname === "/favicon.ico" || url.pathname === "/favicon.svg") {
-        return svg(iconSvg(), { cache: true });
       }
 
       return await handlePublicRequest(request, env, url);
@@ -792,17 +799,22 @@ function html(body) {
   });
 }
 
-function svg(body, options = {}) {
-  return new Response(body, {
+function redirectToLogo() {
+  return new Response(null, {
+    status: 302,
     headers: {
-      "Content-Type": "image/svg+xml; charset=utf-8",
-      ...(options.cache ? { "Cache-Control": "public, max-age=86400" } : noStoreHeaders()),
+      Location: "/logo.png",
+      "Cache-Control": "public, max-age=86400",
     },
   });
 }
 
-function iconSvg() {
-  return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><defs><linearGradient id="bg" x1="9" y1="7" x2="56" y2="57" gradientUnits="userSpaceOnUse"><stop stop-color="#13223a"/><stop offset=".5" stop-color="#0f172a"/><stop offset="1" stop-color="#03141c"/></linearGradient><linearGradient id="route" x1="14" y1="18" x2="51" y2="46" gradientUnits="userSpaceOnUse"><stop stop-color="#38bdf8"/><stop offset=".48" stop-color="#2dd4bf"/><stop offset="1" stop-color="#f59e0b"/></linearGradient><linearGradient id="card" x1="20" y1="18" x2="45" y2="47" gradientUnits="userSpaceOnUse"><stop stop-color="#f8fafc"/><stop offset="1" stop-color="#bfdbfe"/></linearGradient></defs><rect x="4" y="4" width="56" height="56" rx="13" fill="url(#bg)"/><path d="M18 22h16.5c7.5 0 12.5 4.7 12.5 10.2S42 42.5 34.5 42.5H24" fill="none" stroke="url(#route)" stroke-width="6.4" stroke-linecap="round"/><path d="M31.5 20 18 32l13.5 12" fill="none" stroke="url(#card)" stroke-width="5.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M29 32h20" fill="none" stroke="#f8fafc" stroke-width="4.6" stroke-linecap="round"/><path d="M19.5 50h25" stroke="#38bdf8" stroke-width="2.4" stroke-linecap="round" opacity=".45"/></svg>';
+async function serveStaticAsset(context) {
+  if (context && typeof context.next === "function") {
+    const response = await context.next();
+    if (response && response.status !== 404) return response;
+  }
+  return new Response("Not found", { status: 404, headers: noStoreHeaders() });
 }
 
 function uiIcon(name) {
@@ -837,9 +849,8 @@ function adminHtml(adminPath) {
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Sub302 控制台</title>
-  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-  <link rel="alternate icon" href="/favicon.ico" />
-  <link rel="mask-icon" href="/favicon.svg" color="#2563eb" />
+  <link rel="icon" href="/logo.png" type="image/png" sizes="any" />
+  <link rel="apple-touch-icon" href="/logo.png" />
   <meta name="theme-color" content="#030712" />
   <script>
     (function () {
