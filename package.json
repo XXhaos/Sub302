@@ -1,5 +1,5 @@
 {
-  "name": "sub302-cf",
+  "name": "sub302",
   "version": "0.1.0",
   "private": true,
   "description": "A tiny Cloudflare Worker subscription redirect manager: UI + CRUD + 302 only.",

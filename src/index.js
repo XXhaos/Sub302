@@ -151,10 +151,10 @@ async function handleLogin(request, env) {
   ensureKv(env);
   const body = await safeJson(request);
   const password = String(body.password || "");
-  const expected = env.ADMIN_PASSWORD;
+  const expected = env.SUB302_ADMIN_PASSWORD;
 
   if (!expected || expected === "change-me") {
-    return json({ ok: false, error: "ADMIN_PASSWORD is not configured" }, 500);
+    return json({ ok: false, error: "SUB302_ADMIN_PASSWORD is not configured" }, 500);
   }
 
   if (password !== expected) {
@@ -162,7 +162,7 @@ async function handleLogin(request, env) {
   }
 
   const token = crypto.randomUUID() + "." + Date.now();
-  await env.SUB_ROUTES.put(`session:${token}`, "1", { expirationTtl: SESSION_TTL_SECONDS });
+  await env.SUB302_KV.put(`session:${token}`, "1", { expirationTtl: SESSION_TTL_SECONDS });
 
   return new Response(JSON.stringify({ ok: true }), {
     headers: {
@@ -177,7 +177,7 @@ async function requireAuth(request, env) {
   ensureKv(env);
   const token = getCookie(request.headers.get("Cookie") || "", SESSION_COOKIE);
   if (!token) return { ok: false };
-  const exists = await env.SUB_ROUTES.get(`session:${token}`);
+  const exists = await env.SUB302_KV.get(`session:${token}`);
   return { ok: exists === "1" };
 }
 
@@ -415,7 +415,7 @@ function buildProfileItems(request, store, profile) {
 }
 
 function redirectResponse(env, store, target) {
-  const configured = Number(store.settings.redirectStatusCode || env.REDIRECT_STATUS_CODE || 302);
+  const configured = Number(store.settings.redirectStatusCode || env.SUB302_REDIRECT_STATUS_CODE || 302);
   const status = REDIRECT_STATUS_CODES.has(configured) ? configured : 302;
 
   return new Response(null, {
@@ -431,7 +431,7 @@ function redirectResponse(env, store, target) {
 
 async function getStore(env) {
   ensureKv(env);
-  const raw = await env.SUB_ROUTES.get(DATA_KEY);
+  const raw = await env.SUB302_KV.get(DATA_KEY);
   if (raw) {
     try {
       return normalizeStore(JSON.parse(raw));
@@ -440,7 +440,7 @@ async function getStore(env) {
     }
   }
 
-  const legacy = await env.SUB_ROUTES.get(LEGACY_ROUTES_KEY);
+  const legacy = await env.SUB302_KV.get(LEGACY_ROUTES_KEY);
   if (!legacy) return normalizeStore({});
 
   try {
@@ -468,7 +468,7 @@ async function getStore(env) {
 
 async function putStore(env, store) {
   ensureKv(env);
-  await env.SUB_ROUTES.put(DATA_KEY, JSON.stringify(normalizeStore(store), null, 2));
+  await env.SUB302_KV.put(DATA_KEY, JSON.stringify(normalizeStore(store), null, 2));
 }
 
 function normalizeStore(input) {
@@ -627,8 +627,8 @@ function getCookie(cookieHeader, name) {
 }
 
 function ensureKv(env) {
-  if (!env.SUB_ROUTES) {
-    throw new Error("SUB_ROUTES KV binding is not configured");
+  if (!env.SUB302_KV) {
+    throw new Error("SUB302_KV binding is not configured");
   }
 }
 
@@ -842,7 +842,7 @@ function adminHtml() {
       </div>
       <form id="loginForm">
         <label for="password">管理密码</label>
-        <input id="password" type="password" autocomplete="current-password" placeholder="ADMIN_PASSWORD" />
+        <input id="password" type="password" autocomplete="current-password" placeholder="SUB302_ADMIN_PASSWORD" />
         <div class="auth-actions">
           <button class="btn" type="submit">登录</button>
           <span id="loginMsg" class="muted"></span>
