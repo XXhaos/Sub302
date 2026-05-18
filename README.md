@@ -1,12 +1,20 @@
 # Sub302-CF
 
-一个极简 Cloudflare Worker 订阅入口管理器：
+Sub302 是一个部署在 Cloudflare Workers 上的订阅入口管理器。它的核心原则很简单：
 
-- 带 `/admin` 管理 UI
-- 可新增、编辑、删除订阅入口
-- 客户端访问固定入口时只返回 `302 Location`
-- 不 `fetch()` 真实订阅，不解析、不合并、不转换
-- 适合 Surge / Clash Party 固定订阅 URL，但真实订阅由客户端本地网络拉取
+- 单条机场订阅入口只返回 `302/307/308/303 Location`
+- 不在 Worker 端 `fetch()` 真实订阅
+- 不解析、不合并、不转换订阅内容
+- 本地 Sub-Store 负责订阅拉取、转换和聚合处理
+
+## 功能
+
+- 仪表盘：查看机场订阅、手动节点、订阅组和启用入口数量
+- 机场订阅：维护真实订阅 URL，生成固定 Sub302 入口
+- 手动节点：保存单条节点 URI，供订阅组清单引用
+- 我的订阅：创建订阅组，支持“引用清单”或“302 到聚合地址”
+- 设置：公开基址、重定向状态码、订阅组前缀、数据备份
+- 兼容旧版 `routes:v1` 数据，会自动迁移到 `sub302:data:v2`
 
 ## 部署
 
@@ -21,7 +29,7 @@ npx wrangler kv namespace create SUB_ROUTES
 ```toml
 [[kv_namespaces]]
 binding = "SUB_ROUTES"
-id = "你的 id"
+id = "你的 namespace id"
 ```
 
 设置管理密码：
@@ -36,7 +44,7 @@ npx wrangler secret put ADMIN_PASSWORD
 npm run deploy
 ```
 
-访问：
+访问后台：
 
 ```text
 https://你的域名/admin
@@ -44,42 +52,52 @@ https://你的域名/admin
 
 ## 使用方式
 
-在后台添加：
+在“机场订阅”里添加：
 
 ```text
-名称：Surge
-路径：surge-a8k2p
-目标：https://真实-surge-订阅链接
+名称：主力机场
+路径：main-sub
+真实订阅：https://真实订阅地址
 ```
 
-Surge 中固定填写：
+本地 Sub-Store 中填写固定入口：
 
 ```text
-https://你的域名/surge-a8k2p
+https://你的域名/main-sub
 ```
 
-客户端更新时，Worker 返回：
+客户端更新时，Worker 只返回：
 
 ```http
 HTTP/1.1 302 Found
-Location: https://真实-surge-订阅链接
+Location: https://真实订阅地址
 ```
 
-## 验证没有服务端拉取
+如果在设置中关闭“允许根路径固定入口”，固定入口会变成：
+
+```text
+https://你的域名/r/main-sub
+```
+
+## 订阅组
+
+“我的订阅”提供两种输出方式：
+
+- 引用清单：`/p/组slug` 返回文本清单，内容是选中的 Sub302 固定入口和手动节点 URI
+- 302 到聚合地址：`/p/组slug` 直接重定向到你填写的聚合订阅地址
+
+注意：引用清单只组合“链接引用”和“手动节点文本”，不会抓取真实订阅，也不会做节点转换。真正的订阅拉取和转换仍交给本地 Sub-Store。
+
+## 验证 302
 
 ```bash
-curl -I https://你的域名/surge-a8k2p
+curl -I https://你的域名/main-sub
 ```
 
-应看到 `302` 和 `Location`，而不是订阅正文。
+应该看到 `302` 和 `Location`，而不是订阅正文。
 
 ## 配置项
 
-- `ADMIN_PASSWORD`：管理后台密码，建议用 secret 设置
-- `REDIRECT_STATUS_CODE`：默认 `302`，可设为 `307`
-
-## 安全建议
-
-- 不要用容易猜到的路径，例如 `/surge`、`/clash`
-- 推荐使用 `/surge-a8k2p`、`/clash-x7vm3` 这类路径
-- 真实订阅链接会出现在浏览器端后台列表中，不要把后台暴露给别人
+- `ADMIN_PASSWORD`：后台管理密码，建议使用 Cloudflare secret
+- `REDIRECT_STATUS_CODE`：默认重定向状态码，未在后台设置时使用，默认 `302`
+- `SUB_ROUTES`：Cloudflare KV namespace binding
