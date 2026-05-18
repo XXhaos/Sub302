@@ -8,12 +8,12 @@ const DEFAULT_SETTINGS = {
   publicBaseUrl: "",
   redirectStatusCode: "302",
   profilePrefix: "p",
+  adminPath: "admin",
   allowLegacyRootRoutes: true,
 };
 
 const REDIRECT_STATUS_CODES = new Set([302, 303, 307, 308]);
 const RESERVED_ROOT_SLUGS = new Set([
-  "admin",
   "api",
   "assets",
   "favicon.ico",
@@ -28,8 +28,10 @@ export default {
     const url = new URL(request.url);
 
     try {
-      if (url.pathname === "/admin" || url.pathname === "/admin/") {
-        return html(adminHtml());
+      const adminPath = await getAdminPath(env);
+
+      if (isAdminPath(url.pathname, adminPath)) {
+        return html(adminHtml(adminPath));
       }
 
       if (url.pathname.startsWith("/api/")) {
@@ -37,11 +39,11 @@ export default {
       }
 
       if (url.pathname === "/") {
-        return Response.redirect(`${url.origin}/admin`, 302);
+        return new Response("Not found", { status: 404, headers: noStoreHeaders() });
       }
 
-      if (url.pathname === "/favicon.ico") {
-        return new Response("Not found", { status: 404, headers: noStoreHeaders() });
+      if (url.pathname === "/favicon.ico" || url.pathname === "/favicon.svg") {
+        return svg(iconSvg(), { cache: true });
       }
 
       return await handlePublicRequest(request, env, url);
@@ -52,6 +54,9 @@ export default {
 };
 
 async function handleApi(request, env, url) {
+  const adminAccess = await requireAdminPathAccess(request, env);
+  if (!adminAccess.ok) return json({ ok: false, error: "Not found" }, 404);
+
   if (url.pathname === "/api/login" && request.method === "POST") {
     return handleLogin(request, env);
   }
@@ -200,6 +205,9 @@ async function upsertAirport(request, env) {
   if (!slug) return json({ ok: false, error: "Missing slug" }, 400);
   if (RESERVED_ROOT_SLUGS.has(slug.toLowerCase())) {
     return json({ ok: false, error: "This slug is reserved" }, 400);
+  }
+  if (slug.toLowerCase() === store.settings.adminPath.toLowerCase()) {
+    return json({ ok: false, error: "Slug conflicts with the admin path" }, 400);
   }
   if (!isHttpUrl(url)) {
     return json({ ok: false, error: "Subscription URL must start with http:// or https://" }, 400);
@@ -553,13 +561,16 @@ function sanitizeSettings(settings) {
   const source = { ...DEFAULT_SETTINGS, ...(settings || {}) };
   const status = Number(source.redirectStatusCode || DEFAULT_SETTINGS.redirectStatusCode);
   const publicBaseUrl = String(source.publicBaseUrl || "").trim().replace(/\/+$/g, "");
-  const profilePrefix = normalizeSlug(source.profilePrefix || DEFAULT_SETTINGS.profilePrefix) || DEFAULT_SETTINGS.profilePrefix;
+  let profilePrefix = normalizeSlug(source.profilePrefix || DEFAULT_SETTINGS.profilePrefix) || DEFAULT_SETTINGS.profilePrefix;
+  const adminPath = normalizeAdminPath(source.adminPath || DEFAULT_SETTINGS.adminPath);
+  if (profilePrefix === adminPath) profilePrefix = DEFAULT_SETTINGS.profilePrefix;
 
   return {
     siteName: String(source.siteName || DEFAULT_SETTINGS.siteName).trim().slice(0, 48) || DEFAULT_SETTINGS.siteName,
     publicBaseUrl: isHttpUrl(publicBaseUrl) ? publicBaseUrl : "",
     redirectStatusCode: String(REDIRECT_STATUS_CODES.has(status) ? status : 302),
     profilePrefix: RESERVED_ROOT_SLUGS.has(profilePrefix) && profilePrefix !== "p" ? "p" : profilePrefix,
+    adminPath,
     allowLegacyRootRoutes: source.allowLegacyRootRoutes !== false,
   };
 }
@@ -585,6 +596,43 @@ function normalizeSlug(value) {
     .replace(/[^A-Za-z0-9._~-]+/g, "-")
     .replace(/^-+|-+$/g, "")
     .slice(0, 120);
+}
+
+function normalizeAdminPath(value) {
+  const path = normalizeSlug(value) || DEFAULT_SETTINGS.adminPath;
+  return RESERVED_ROOT_SLUGS.has(path.toLowerCase()) ? DEFAULT_SETTINGS.adminPath : path;
+}
+
+function isAdminPath(pathname, adminPath) {
+  return normalizeSlug(pathname) === adminPath;
+}
+
+async function getAdminPath(env) {
+  try {
+    if (!env.SUB302_KV) return DEFAULT_SETTINGS.adminPath;
+    const raw = await env.SUB302_KV.get(DATA_KEY);
+    if (!raw) return DEFAULT_SETTINGS.adminPath;
+    const parsed = JSON.parse(raw);
+    return sanitizeSettings(parsed?.settings || {}).adminPath;
+  } catch {
+    return DEFAULT_SETTINGS.adminPath;
+  }
+}
+
+async function requireAdminPathAccess(request, env) {
+  const adminPath = await getAdminPath(env);
+  const headerPath = request.headers.get("X-Sub302-Admin-Path") || "";
+  const refererPath = getRefererPath(request.headers.get("Referer") || "");
+  const candidate = headerPath || refererPath;
+  return { ok: normalizeSlug(candidate) === adminPath };
+}
+
+function getRefererPath(value) {
+  try {
+    return new URL(value).pathname;
+  } catch {
+    return "";
+  }
 }
 
 function makeId(prefix) {
@@ -662,13 +710,43 @@ function html(body) {
   });
 }
 
-function adminHtml() {
+function svg(body, options = {}) {
+  return new Response(body, {
+    headers: {
+      "Content-Type": "image/svg+xml; charset=utf-8",
+      ...(options.cache ? { "Cache-Control": "public, max-age=86400" } : noStoreHeaders()),
+    },
+  });
+}
+
+function iconSvg() {
+  return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#0f766e"/><path d="M18 35.5 29.5 18 46 28.5 34.5 46 18 35.5Z" fill="#d9f4ef"/><path d="M25 34.5h12.5l-4.2 6.4" fill="none" stroke="#0f766e" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+}
+
+function uiIcon(name) {
+  const icons = {
+    logo: '<svg class="brand-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 13.2 10.2 4 20 10.1 13.8 20 4 13.2Z"/><path d="M8.8 12.8h6.3l-2.1 3.1"/></svg>',
+    dashboard: '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.5A1.5 1.5 0 0 1 5.5 4h4A1.5 1.5 0 0 1 11 5.5v5A1.5 1.5 0 0 1 9.5 12h-4A1.5 1.5 0 0 1 4 10.5v-5ZM13 5.5A1.5 1.5 0 0 1 14.5 4h4A1.5 1.5 0 0 1 20 5.5v2A1.5 1.5 0 0 1 18.5 9h-4A1.5 1.5 0 0 1 13 7.5v-2ZM13 13.5a1.5 1.5 0 0 1 1.5-1.5h4a1.5 1.5 0 0 1 1.5 1.5v5a1.5 1.5 0 0 1-1.5 1.5h-4a1.5 1.5 0 0 1-1.5-1.5v-5ZM4 16.5A1.5 1.5 0 0 1 5.5 15h4a1.5 1.5 0 0 1 1.5 1.5v2A1.5 1.5 0 0 1 9.5 20h-4A1.5 1.5 0 0 1 4 18.5v-2Z"/></svg>',
+    cloud: '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M7.2 18.5h10.1a4.2 4.2 0 0 0 .5-8.4 6.2 6.2 0 0 0-11.7 1.6 3.4 3.4 0 0 0 1.1 6.8Z"/></svg>',
+    node: '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 9.5a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM17.5 20.5a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM6.5 20.5a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM9.1 8.3l5.8 7.4M9.5 17.5h5"/></svg>',
+    layers: '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 9 5-9 5-9-5 9-5Z"/><path d="m4 12 8 4.5 8-4.5M4 16l8 4.5 8-4.5"/></svg>',
+    settings: '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15.2a3.2 3.2 0 1 0 0-6.4 3.2 3.2 0 0 0 0 6.4Z"/><path d="m19.4 13.5.1-1.5-.1-1.5 2-1.5-2-3.5-2.4 1a8.3 8.3 0 0 0-2.6-1.5L14 2.5h-4l-.4 2.5A8.3 8.3 0 0 0 7 6.5l-2.4-1-2 3.5 2 1.5-.1 1.5.1 1.5-2 1.5 2 3.5 2.4-1a8.3 8.3 0 0 0 2.6 1.5l.4 2.5h4l.4-2.5a8.3 8.3 0 0 0 2.6-1.5l2.4 1 2-3.5-2-1.5Z"/></svg>',
+    login: '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M10 7V5.8A2.8 2.8 0 0 1 12.8 3h4.4A2.8 2.8 0 0 1 20 5.8v12.4a2.8 2.8 0 0 1-2.8 2.8h-4.4a2.8 2.8 0 0 1-2.8-2.8V17"/><path d="M4 12h10M10.5 8.5 14 12l-3.5 3.5"/></svg>',
+    copy: '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 8h10.5A1.5 1.5 0 0 1 20 9.5v9A1.5 1.5 0 0 1 18.5 20h-9A1.5 1.5 0 0 1 8 18.5V8Z"/><path d="M5 16H4.5A1.5 1.5 0 0 1 3 14.5v-9A1.5 1.5 0 0 1 4.5 4h9A1.5 1.5 0 0 1 15 5.5V6"/></svg>',
+    plus: '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>',
+    logout: '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 7V5.8A2.8 2.8 0 0 0 11.2 3H6.8A2.8 2.8 0 0 0 4 5.8v12.4A2.8 2.8 0 0 0 6.8 21h4.4a2.8 2.8 0 0 0 2.8-2.8V17"/><path d="M10 12h10M16.5 8.5 20 12l-3.5 3.5"/></svg>',
+  };
+  return icons[name] || "";
+}
+
+function adminHtml(adminPath) {
   return `<!doctype html>
 <html lang="zh-CN">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Sub302 控制台</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
   <style>
     :root {
       color-scheme: light;
@@ -712,7 +790,9 @@ function adminHtml() {
     .auth-screen { min-height: 100vh; display: grid; place-items: center; padding: 24px; }
     .auth-card { width: min(420px, 100%); background: var(--panel); border: 1px solid var(--line-soft); border-radius: 8px; box-shadow: var(--shadow); padding: 24px; }
     .brand-row { display: flex; align-items: center; gap: 12px; margin-bottom: 22px; }
-    .brand-mark { width: 42px; height: 42px; display: grid; place-items: center; border-radius: 8px; background: var(--primary); color: #fff; font-weight: 900; }
+    .brand-mark { width: 42px; height: 42px; display: grid; place-items: center; border-radius: 8px; background: var(--primary); color: #fff; }
+    .icon, .brand-icon { width: 18px; height: 18px; flex: 0 0 auto; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+    .brand-icon { width: 25px; height: 25px; stroke-width: 1.9; }
     h1, h2, h3, p { margin: 0; }
     .brand-row h1 { font-size: 24px; }
     .brand-row p, .muted { color: var(--muted); }
@@ -725,7 +805,8 @@ function adminHtml() {
     .nav button {
       display: flex;
       align-items: center;
-      justify-content: space-between;
+      justify-content: flex-start;
+      gap: 10px;
       min-height: 38px;
       border-radius: 8px;
       padding: 0 11px;
@@ -838,7 +919,7 @@ function adminHtml() {
   <section id="loginView" class="auth-screen">
     <div class="auth-card">
       <div class="brand-row">
-        <div class="brand-mark">302</div>
+        <div class="brand-mark">${uiIcon("logo")}</div>
         <div>
           <h1>Sub302</h1>
           <p class="muted">订阅重定向控制台</p>
@@ -846,9 +927,9 @@ function adminHtml() {
       </div>
       <form id="loginForm">
         <label for="password">管理密码</label>
-        <input id="password" type="password" autocomplete="current-password" placeholder="SUB302_ADMIN_PASSWORD" />
+        <input id="password" type="password" autocomplete="current-password" placeholder="输入密码" />
         <div class="auth-actions">
-          <button class="btn" type="submit">登录</button>
+          <button class="btn" type="submit">${uiIcon("login")}登录</button>
           <span id="loginMsg" class="muted"></span>
         </div>
       </form>
@@ -858,22 +939,22 @@ function adminHtml() {
   <section id="appView" class="app-shell hidden">
     <aside class="sidebar">
       <div class="brand-row">
-        <div class="brand-mark">302</div>
+        <div class="brand-mark">${uiIcon("logo")}</div>
         <div>
           <h1 id="brandTitle">Sub302</h1>
           <p class="muted">Redirect only</p>
         </div>
       </div>
       <nav class="nav" aria-label="主导航">
-        <button class="active" data-tab="dashboard" type="button">仪表盘</button>
-        <button data-tab="airports" type="button">机场订阅</button>
-        <button data-tab="nodes" type="button">手动节点</button>
-        <button data-tab="profiles" type="button">我的订阅</button>
-        <button data-tab="settings" type="button">设置</button>
+        <button class="active" data-tab="dashboard" type="button">${uiIcon("dashboard")}仪表盘</button>
+        <button data-tab="airports" type="button">${uiIcon("cloud")}机场订阅</button>
+        <button data-tab="nodes" type="button">${uiIcon("node")}手动节点</button>
+        <button data-tab="profiles" type="button">${uiIcon("layers")}我的订阅</button>
+        <button data-tab="settings" type="button">${uiIcon("settings")}设置</button>
       </nav>
       <div class="sidebar-footer">
         <span id="baseBadge" class="badge">未加载</span>
-        <button id="logoutBtn" class="btn secondary" type="button">退出登录</button>
+        <button id="logoutBtn" class="btn secondary" type="button">${uiIcon("logout")}退出登录</button>
       </div>
     </aside>
 
@@ -885,7 +966,7 @@ function adminHtml() {
         </div>
         <div class="topbar-actions">
           <span id="statusBadge" class="badge">Ready</span>
-          <button class="btn secondary small" data-action="copy-base" type="button">复制基址</button>
+          <button class="btn secondary small" data-action="copy-base" type="button">${uiIcon("copy")}复制基址</button>
         </div>
       </header>
 
@@ -915,8 +996,8 @@ function adminHtml() {
             </div>
             <div class="mono-line" id="baseUrlLine"></div>
             <div class="actions" style="margin-top: 12px;">
-              <button class="btn small" data-tab="airports" type="button">新增机场订阅</button>
-              <button class="btn secondary small" data-tab="profiles" type="button">管理订阅组</button>
+              <button class="btn small" data-tab="airports" type="button">${uiIcon("plus")}新增机场订阅</button>
+              <button class="btn secondary small" data-tab="profiles" type="button">${uiIcon("layers")}管理订阅组</button>
             </div>
           </section>
         </div>
@@ -1061,6 +1142,10 @@ function adminHtml() {
               <input id="siteName" placeholder="Sub302" />
             </div>
             <div>
+              <label for="adminPath">控制台安全路径</label>
+              <input id="adminPath" placeholder="admin 或 token123456" />
+            </div>
+            <div>
               <label for="redirectStatusCode">重定向状态码</label>
               <select id="redirectStatusCode">
                 <option value="302">302 Found</option>
@@ -1104,6 +1189,8 @@ function adminHtml() {
   <div id="toast" class="toast hidden"></div>
 
 <script>
+window.SUB302_ADMIN_PATH = ${JSON.stringify(`/${adminPath}`)};
+
 const state = {
   activeTab: "dashboard",
   data: null
@@ -1121,11 +1208,16 @@ function $(id) {
   return document.getElementById(id);
 }
 
+function currentAdminPath() {
+  const configured = state.data?.settings?.adminPath || "";
+  return configured ? "/" + configured.replace(new RegExp("^/+|/+$", "g"), "") : window.SUB302_ADMIN_PATH;
+}
+
 async function api(path, options) {
   const init = options || {};
   const res = await fetch(path, {
     credentials: "same-origin",
-    headers: { "Content-Type": "application/json", ...(init.headers || {}) },
+    headers: { "Content-Type": "application/json", "X-Sub302-Admin-Path": currentAdminPath(), ...(init.headers || {}) },
     ...init
   });
   const data = await res.json().catch(function () { return {}; });
@@ -1248,6 +1340,7 @@ function renderProfileChoices(selectedProfile) {
 function renderSettings() {
   const settings = state.data.settings;
   $("siteName").value = settings.siteName || "Sub302";
+  $("adminPath").value = settings.adminPath || "admin";
   $("publicBaseUrl").value = settings.publicBaseUrl || "";
   $("redirectStatusCode").value = settings.redirectStatusCode || "302";
   $("profilePrefix").value = settings.profilePrefix || "p";
@@ -1307,6 +1400,7 @@ async function saveSettings(event) {
   event.preventDefault();
   const payload = {
     siteName: $("siteName").value,
+    adminPath: $("adminPath").value,
     publicBaseUrl: $("publicBaseUrl").value,
     redirectStatusCode: $("redirectStatusCode").value,
     profilePrefix: $("profilePrefix").value,
