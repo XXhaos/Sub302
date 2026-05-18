@@ -1101,6 +1101,7 @@ function adminHtml(adminPath) {
     .item-card .actions { justify-content: flex-end; }
     .overview-row { display: grid; gap: 10px; padding: 12px; border: 1px solid var(--line-soft); border-radius: var(--radius-sm); background: var(--panel-soft); cursor: pointer; transition: border-color .16s ease, background-color .16s ease, transform .16s ease; }
     .overview-row:hover { border-color: color-mix(in srgb, var(--primary) 26%, var(--line)); background: var(--panel-strong); transform: translateY(-1px); }
+    .overview-row:focus-visible { outline: 2px solid color-mix(in srgb, var(--primary) 70%, transparent); outline-offset: 2px; }
     .overview-row .item-head { margin-bottom: 0; }
     .overview-link { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: center; }
     .copy-hint { color: var(--primary-strong); font-size: 12px; font-weight: 800; white-space: nowrap; }
@@ -1556,7 +1557,7 @@ function renderDashboard() {
   });
 
   $("subscriptionOverview").innerHTML = overview.length ? overview.map(function (item) {
-    return '<article class="overview-row" data-action="copy" data-value="' + attr(item.link) + '" title="点击复制">' +
+    return '<article class="overview-row" data-copy-value="' + attr(item.link) + '" role="button" tabindex="0" title="点击复制">' +
       '<div class="item-head"><div class="item-title-row"><span class="card-avatar">' + clientIcon(item.icon) + '</span><div><h3>' + esc(item.name) + '</h3><div class="item-meta"><span class="badge">' + esc(item.type) + '</span><span class="status ' + (item.enabled ? "on" : "off") + '">' + (item.enabled ? "启用" : "停用") + '</span><span class="muted">' + fmtDate(item.date) + '</span></div></div></div></div>' +
       '<div class="overview-link"><div class="mono-line">' + esc(item.link) + '</div><span class="copy-hint">点击复制</span></div>' +
     '</article>';
@@ -1902,16 +1903,36 @@ async function copyText(value) {
   const text = String(value || "");
   if (!text) return;
   try {
-    await navigator.clipboard.writeText(text);
-  } catch {
-    const input = document.createElement("textarea");
-    input.value = text;
-    document.body.appendChild(input);
-    input.select();
-    document.execCommand("copy");
-    input.remove();
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(text);
+    } else {
+      fallbackCopyText(text);
+    }
+    toast("已复制");
+  } catch (error) {
+    try {
+      fallbackCopyText(text);
+      toast("已复制");
+    } catch (fallbackError) {
+      toast("复制失败，请手动复制", true);
+    }
   }
-  toast("已复制");
+}
+
+function fallbackCopyText(text) {
+  const input = document.createElement("textarea");
+  input.value = text;
+  input.setAttribute("readonly", "");
+  input.style.position = "fixed";
+  input.style.left = "-9999px";
+  input.style.top = "0";
+  document.body.appendChild(input);
+  input.focus();
+  input.select();
+  input.setSelectionRange(0, input.value.length);
+  const copied = document.execCommand("copy");
+  input.remove();
+  if (!copied) throw new Error("Copy failed");
 }
 
 function fmtDate(value) {
@@ -1981,6 +2002,12 @@ function bindEvents() {
   $("profileOutput").addEventListener("change", updateProfileOutput);
 
   document.addEventListener("click", async function (event) {
+    const copyTarget = event.target.closest("[data-copy-value]");
+    if (copyTarget) {
+      event.preventDefault();
+      return copyText(copyTarget.getAttribute("data-copy-value"));
+    }
+
     const tabButton = event.target.closest("[data-tab]");
     if (tabButton) {
       setTab(tabButton.getAttribute("data-tab"));
@@ -2028,6 +2055,14 @@ function bindEvents() {
         toast(error.message, true);
       }
     }
+  });
+
+  document.addEventListener("keydown", function (event) {
+    if (event.key !== "Enter" && event.key !== " ") return;
+    const copyTarget = event.target.closest("[data-copy-value]");
+    if (!copyTarget) return;
+    event.preventDefault();
+    copyText(copyTarget.getAttribute("data-copy-value"));
   });
 }
 
