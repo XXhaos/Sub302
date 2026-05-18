@@ -420,7 +420,7 @@ function buildProfileItems(request, store, profile) {
 
   for (const id of profile.nodeIds || []) {
     const item = nodes.get(id);
-    if (item?.enabled && item.uri) items.push(item.uri);
+    if (item?.enabled && item.uri) items.push(renameNodeUri(item.uri, item.name));
   }
 
   return uniqueStrings(items);
@@ -641,6 +641,76 @@ function makeId(prefix) {
 
 function uniqueStrings(items) {
   return Array.from(new Set((Array.isArray(items) ? items : []).map((item) => String(item || "").trim()).filter(Boolean)));
+}
+
+function renameNodeUri(uri, name) {
+  const nodeUri = String(uri || "").trim();
+  const nodeName = String(name || "").trim();
+  if (!nodeUri || !nodeName) return nodeUri;
+
+  const scheme = (nodeUri.match(/^([a-z][a-z0-9+.-]*):\/\//i)?.[1] || "").toLowerCase();
+  if (scheme === "vmess") return renameVmessUri(nodeUri, nodeName);
+  if (scheme === "ssr") return renameSsrUri(nodeUri, nodeName);
+  return setNodeUriFragment(nodeUri, nodeName);
+}
+
+function renameVmessUri(uri, name) {
+  try {
+    const payload = uri.slice("vmess://".length).split(/[?#]/)[0];
+    const config = JSON.parse(base64DecodeUtf8(payload));
+    config.ps = name;
+    return `vmess://${base64EncodeUtf8(JSON.stringify(config))}`;
+  } catch {
+    return setNodeUriFragment(uri, name);
+  }
+}
+
+function renameSsrUri(uri, name) {
+  try {
+    const payload = uri.slice("ssr://".length).split("#")[0];
+    const decoded = base64DecodeUtf8(payload);
+    const marker = "/?";
+    const markerIndex = decoded.indexOf(marker);
+    if (markerIndex === -1) return setNodeUriFragment(uri, name);
+
+    const base = decoded.slice(0, markerIndex + marker.length);
+    const params = new URLSearchParams(decoded.slice(markerIndex + marker.length));
+    params.set("remarks", base64UrlEncodeUtf8(name));
+    return `ssr://${base64UrlEncodeUtf8(base + params.toString())}`;
+  } catch {
+    return setNodeUriFragment(uri, name);
+  }
+}
+
+function setNodeUriFragment(uri, name) {
+  const hashIndex = uri.lastIndexOf("#");
+  const base = hashIndex === -1 ? uri : uri.slice(0, hashIndex);
+  return `${base}#${encodeURIComponent(name)}`;
+}
+
+function normalizeBase64(value) {
+  let normalized = String(value || "").trim().replace(/\s+/g, "").replace(/-/g, "+").replace(/_/g, "/");
+  const padding = normalized.length % 4;
+  if (padding) normalized += "=".repeat(4 - padding);
+  return normalized;
+}
+
+function base64DecodeUtf8(value) {
+  const binary = atob(normalizeBase64(value));
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i += 1) bytes[i] = binary.charCodeAt(i);
+  return new TextDecoder().decode(bytes);
+}
+
+function base64EncodeUtf8(value) {
+  const bytes = new TextEncoder().encode(String(value || ""));
+  let binary = "";
+  for (let i = 0; i < bytes.length; i += 1) binary += String.fromCharCode(bytes[i]);
+  return btoa(binary);
+}
+
+function base64UrlEncodeUtf8(value) {
+  return base64EncodeUtf8(value).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
 }
 
 function isHttpUrl(value) {
@@ -1303,7 +1373,7 @@ function renderNodes() {
   $("nodeList").innerHTML = list.length ? list.map(function (item) {
     return '<article class="item-card">' +
       '<div class="item-head"><div><h3>' + esc(item.name) + '</h3><div class="item-meta"><span class="status ' + (item.enabled ? "on" : "off") + '">' + (item.enabled ? "启用" : "停用") + '</span><span class="muted">' + fmtDate(item.updatedAt) + '</span></div></div>' +
-      '<div class="actions"><button class="btn secondary small" data-action="copy" data-value="' + attr(item.uri) + '" type="button">复制节点</button><button class="btn secondary small" data-action="edit-node" data-id="' + attr(item.id) + '" type="button">编辑</button><button class="btn danger small" data-action="delete-node" data-id="' + attr(item.id) + '" type="button">删除</button></div></div>' +
+      '<div class="actions"><button class="btn secondary small" data-action="copy" data-value="' + attr(renameNodeUri(item.uri, item.name)) + '" type="button">复制节点</button><button class="btn secondary small" data-action="edit-node" data-id="' + attr(item.id) + '" type="button">编辑</button><button class="btn danger small" data-action="delete-node" data-id="' + attr(item.id) + '" type="button">删除</button></div></div>' +
       '<div class="item-body"><div class="mono-line">' + esc(item.uri) + '</div>' + (item.remark ? '<p class="muted">' + esc(item.remark) + '</p>' : '') + '</div>' +
     '</article>';
   }).join("") : '<div class="empty">还没有手动节点</div>';
@@ -1535,9 +1605,78 @@ function profileItems(profile) {
   });
   (profile.nodeIds || []).forEach(function (id) {
     const item = nodes.get(id);
-    if (item && item.enabled) items.push(item.uri);
+    if (item && item.enabled) items.push(renameNodeUri(item.uri, item.name));
   });
   return Array.from(new Set(items));
+}
+
+function renameNodeUri(uri, name) {
+  const nodeUri = String(uri || "").trim();
+  const nodeName = String(name || "").trim();
+  if (!nodeUri || !nodeName) return nodeUri;
+  const match = nodeUri.match(/^([a-z][a-z0-9+.-]*):\\/\\//i);
+  const scheme = match ? match[1].toLowerCase() : "";
+  if (scheme === "vmess") return renameVmessUri(nodeUri, nodeName);
+  if (scheme === "ssr") return renameSsrUri(nodeUri, nodeName);
+  return setNodeUriFragment(nodeUri, nodeName);
+}
+
+function renameVmessUri(uri, name) {
+  try {
+    const payload = uri.slice("vmess://".length).split(/[?#]/)[0];
+    const config = JSON.parse(base64DecodeUtf8(payload));
+    config.ps = name;
+    return "vmess://" + base64EncodeUtf8(JSON.stringify(config));
+  } catch (err) {
+    return setNodeUriFragment(uri, name);
+  }
+}
+
+function renameSsrUri(uri, name) {
+  try {
+    const payload = uri.slice("ssr://".length).split("#")[0];
+    const decoded = base64DecodeUtf8(payload);
+    const marker = "/?";
+    const markerIndex = decoded.indexOf(marker);
+    if (markerIndex === -1) return setNodeUriFragment(uri, name);
+    const base = decoded.slice(0, markerIndex + marker.length);
+    const params = new URLSearchParams(decoded.slice(markerIndex + marker.length));
+    params.set("remarks", base64UrlEncodeUtf8(name));
+    return "ssr://" + base64UrlEncodeUtf8(base + params.toString());
+  } catch (err) {
+    return setNodeUriFragment(uri, name);
+  }
+}
+
+function setNodeUriFragment(uri, name) {
+  const hashIndex = uri.lastIndexOf("#");
+  const base = hashIndex === -1 ? uri : uri.slice(0, hashIndex);
+  return base + "#" + encodeURIComponent(name);
+}
+
+function normalizeBase64(value) {
+  let normalized = String(value || "").trim().replace(/\\s+/g, "").replace(/-/g, "+").replace(/_/g, "/");
+  const padding = normalized.length % 4;
+  if (padding) normalized += "=".repeat(4 - padding);
+  return normalized;
+}
+
+function base64DecodeUtf8(value) {
+  const binary = atob(normalizeBase64(value));
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i += 1) bytes[i] = binary.charCodeAt(i);
+  return new TextDecoder().decode(bytes);
+}
+
+function base64EncodeUtf8(value) {
+  const bytes = new TextEncoder().encode(String(value || ""));
+  let binary = "";
+  for (let i = 0; i < bytes.length; i += 1) binary += String.fromCharCode(bytes[i]);
+  return btoa(binary);
+}
+
+function base64UrlEncodeUtf8(value) {
+  return base64EncodeUtf8(value).replace(/\\+/g, "-").replace(/\\//g, "_").replace(/=+$/g, "");
 }
 
 async function copyText(value) {
