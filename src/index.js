@@ -971,9 +971,9 @@ function adminHtml(adminPath) {
     .brand-row { display: flex; align-items: center; gap: 12px; margin-bottom: 22px; }
     .auth-card .surface-head { align-items: center; margin-bottom: 22px; }
     .auth-card .brand-row { margin-bottom: 0; }
-    .brand-mark { width: 44px; height: 44px; display: grid; place-items: center; border-radius: var(--radius); background: linear-gradient(135deg, #38bdf8, #2563eb 50%, #14b8a6 78%, #f59e0b); color: #fff; box-shadow: 0 16px 36px rgba(37, 99, 235, .24); border: 1px solid rgba(255,255,255,.28); position: relative; overflow: hidden; }
+    .brand-mark { width: 44px; height: 44px; display: grid; place-items: center; border-radius: var(--radius); background: var(--panel-soft); color: #fff; box-shadow: 0 16px 36px rgba(37, 99, 235, .18); border: 1px solid var(--line-soft); position: relative; overflow: hidden; }
     .brand-mark:after { content: ""; position: absolute; inset: 1px; border-radius: 7px; box-shadow: inset 0 1px 0 rgba(255,255,255,.34); pointer-events: none; }
-    .brand-mark .brand-icon { position: relative; z-index: 1; }
+    .brand-logo { width: 100%; height: 100%; display: block; object-fit: cover; position: relative; z-index: 1; }
     html[data-theme="dark"] .brand-mark { box-shadow: 0 18px 42px rgba(37, 99, 235, .28); }
     .icon, .brand-icon { width: 18px; height: 18px; flex: 0 0 auto; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
     .brand-icon { width: 25px; height: 25px; stroke-width: 1.9; }
@@ -1148,7 +1148,7 @@ function adminHtml(adminPath) {
     <div class="auth-card">
       <div class="surface-head">
         <div class="brand-row">
-          <div class="brand-mark">${uiIcon("logo")}</div>
+          <div class="brand-mark"><img class="brand-logo" src="/logo.png" alt="" /></div>
           <div>
             <h1>Sub302</h1>
             <p class="muted">订阅重定向控制台</p>
@@ -1174,7 +1174,7 @@ function adminHtml(adminPath) {
   <section id="appView" class="app-shell hidden">
     <aside class="sidebar">
       <div class="brand-row">
-        <div class="brand-mark">${uiIcon("logo")}</div>
+        <div class="brand-mark"><img class="brand-logo" src="/logo.png" alt="" /></div>
         <div>
           <h1 id="brandTitle">Sub302</h1>
           <p class="muted">Pages Function</p>
