@@ -1,9 +1,0 @@
-name = "sub302"
-main = "src/index.js"
-compatibility_date = "2026-05-10"
-
-[vars]
-# Change in Cloudflare dashboard or with: wrangler secret put SUB302_ADMIN_PASSWORD
-# SUB302_ADMIN_PASSWORD = "change-me"
-# Optional: default is 302. Use 307 if you prefer method-preserving redirects.
-SUB302_REDIRECT_STATUS_CODE = "302"
