@@ -1177,7 +1177,6 @@ function adminHtml(adminPath) {
         <div class="brand-mark"><img class="brand-logo" src="/logo.png" alt="" /></div>
         <div>
           <h1 id="brandTitle">Sub302</h1>
-          <p class="muted">Pages Function</p>
         </div>
       </div>
       <nav class="nav" aria-label="主导航">
@@ -1188,7 +1187,6 @@ function adminHtml(adminPath) {
         <button data-tab="settings" type="button">${uiIcon("settings")}设置</button>
       </nav>
       <div class="sidebar-footer">
-        <span id="baseBadge" class="badge">未加载</span>
         <button id="logoutBtn" class="btn secondary" type="button">${uiIcon("logout")}退出登录</button>
       </div>
     </aside>
@@ -1206,41 +1204,24 @@ function adminHtml(adminPath) {
             <button data-theme-mode="light" type="button" title="浅色" aria-label="浅色">${uiIcon("sun")}</button>
             <button data-theme-mode="dark" type="button" title="深色" aria-label="深色">${uiIcon("moon")}</button>
           </div>
-          <button class="btn secondary small" data-action="copy-base" type="button">${uiIcon("copy")}复制基址</button>
         </div>
       </header>
 
       <section id="panel-dashboard" class="panel active">
-        <div class="grid cols-4">
+        <div class="grid cols-3">
           <div class="metric"><div class="metric-head"><span>机场订阅</span><span class="metric-icon">${uiIcon("cloud")}</span></div><strong id="metricAirports">0</strong></div>
           <div class="metric"><div class="metric-head"><span>手动节点</span><span class="metric-icon">${uiIcon("node")}</span></div><strong id="metricNodes">0</strong></div>
           <div class="metric"><div class="metric-head"><span>订阅组</span><span class="metric-icon">${uiIcon("layers")}</span></div><strong id="metricProfiles">0</strong></div>
-          <div class="metric"><div class="metric-head"><span>启用入口</span><span class="metric-icon">${uiIcon("dashboard")}</span></div><strong id="metricEnabled">0</strong></div>
         </div>
-        <div class="grid cols-2">
-          <section class="surface">
-            <div class="surface-head">
-              <div>
-                <h3>最近更新</h3>
-                <p class="muted">机场订阅和订阅组的最近变更。</p>
-              </div>
+        <section class="surface">
+          <div class="surface-head">
+            <div>
+              <h3>最近更新</h3>
+              <p class="muted">机场订阅和订阅组的最近变更。</p>
             </div>
-            <div id="recentList" class="list"></div>
-          </section>
-          <section class="surface">
-            <div class="surface-head">
-              <div>
-                <h3>公开入口</h3>
-                <p class="muted">当前 Pages Function 对外展示的固定链接基址。</p>
-              </div>
-            </div>
-            <div class="mono-line" id="baseUrlLine"></div>
-            <div class="actions" style="margin-top: 12px;">
-              <button class="btn small" data-tab="airports" type="button">${uiIcon("plus")}新增机场订阅</button>
-              <button class="btn secondary small" data-tab="profiles" type="button">${uiIcon("layers")}管理订阅组</button>
-            </div>
-          </section>
-        </div>
+          </div>
+          <div id="recentList" class="list"></div>
+        </section>
       </section>
 
       <section id="panel-airports" class="panel">
@@ -1537,7 +1518,6 @@ function renderShell() {
   $("brandTitle").textContent = settings.siteName || "Sub302";
   $("pageTitle").textContent = title[0];
   $("pageSubtitle").textContent = title[1];
-  $("baseBadge").textContent = baseUrl();
   $("statusBadge").textContent = settings.redirectStatusCode + " redirect";
   document.querySelectorAll("[data-tab]").forEach(function (button) {
     const tab = button.getAttribute("data-tab");
@@ -1550,13 +1530,9 @@ function renderShell() {
 
 function renderDashboard() {
   const data = state.data;
-  const enabledAirports = data.airports.filter(function (item) { return item.enabled; }).length;
-  const enabledProfiles = data.profiles.filter(function (item) { return item.enabled; }).length;
   $("metricAirports").textContent = data.airports.length;
   $("metricNodes").textContent = data.manualNodes.length;
   $("metricProfiles").textContent = data.profiles.length;
-  $("metricEnabled").textContent = enabledAirports + enabledProfiles;
-  $("baseUrlLine").textContent = baseUrl();
 
   const recent = data.airports.map(function (item) {
     return { type: "机场订阅", name: item.name, date: item.updatedAt, detail: airportUrl(item) };
@@ -1998,7 +1974,6 @@ function bindEvents() {
     const id = actionButton.getAttribute("data-id");
 
     if (action === "copy") return copyText(actionButton.getAttribute("data-value"));
-    if (action === "copy-base") return copyText(baseUrl());
     if (action === "edit-airport") return editAirport(id);
     if (action === "edit-node") return editNode(id);
     if (action === "edit-profile") return editProfile(id);
