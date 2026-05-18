@@ -36,7 +36,11 @@ export default {
         return handleApi(request, env, url);
       }
 
-      if (url.pathname === "/" || url.pathname === "/favicon.ico") {
+      if (url.pathname === "/") {
+        return Response.redirect(`${url.origin}/admin`, 302);
+      }
+
+      if (url.pathname === "/favicon.ico") {
         return new Response("Not found", { status: 404, headers: noStoreHeaders() });
       }
 
@@ -150,8 +154,8 @@ async function handleApi(request, env, url) {
 async function handleLogin(request, env) {
   ensureKv(env);
   const body = await safeJson(request);
-  const password = String(body.password || "");
-  const expected = env.SUB302_ADMIN_PASSWORD;
+  const password = String(body.password ?? "").trim();
+  const expected = String(env.SUB302_ADMIN_PASSWORD || "").trim();
 
   if (!expected || expected === "change-me") {
     return json({ ok: false, error: "SUB302_ADMIN_PASSWORD is not configured" }, 500);
